@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCNA Chapter 4 & 5 Trainer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Courier New', monospace;
+    background: #0a0e1a;
+    color: #c8d6e5;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  .header {
+    background: #0d1117;
+    border-bottom: 2px solid #1e3a5f;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #58a6ff;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .header-sub { font-size: 10px; color: #6e7681; letter-spacing: 1px; margin-top: 2px; }
+
+  /* Timer */
+  .timer-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .timer-display {
+    font-size: 22px;
+    font-weight: 700;
+    color: #3fb950;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    min-width: 70px;
+    text-align: center;
+  }
+  .timer-display.warning { color: #d29922; }
+  .timer-display.danger { color: #f85149; }
+  .timer-btn {
+    background: #1e3a5f;
+    border: 1px solid #58a6ff;
+    color: #58a6ff;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    transition: background 0.15s;
+  }
+  .timer-btn:hover { background: #2d4a6e; }
+
+  /* Progress bar */
+  .progress-bar-outer {
+    height: 3px;
+    background: #161b22;
+    width: 100%;
+  }
+  .progress-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, #58a6ff, #3fb950);
+    transition: width 1s linear;
+  }
+
+  /* Nav tabs */
+  .nav {
+    display: flex;
+    background: #0d1117;
+    border-bottom: 1px solid #1e3a5f;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 10px 18px;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    color: #6e7681;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .nav-tab:hover { color: #c8d6e5; }
+  .nav-tab.active { color: #58a6ff; border-bottom-color: #58a6ff; }
+
+  /* Main content */
+  .content { padding: 20px; max-width: 900px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #58a6ff;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 16px;
+  }
+
+  /* Cards */
+  .card {
+    background: #0d1117;
+    border: 1px solid #1e3a5f;
+    border-radius: 6px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: #58a6ff;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* CLI Simulator */
+  .cli-window {
+    background: #010409;
+    border: 1px solid #1e3a5f;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .cli-titlebar {
+    background: #161b22;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #1e3a5f;
+  }
+  .cli-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .cli-dot.red { background: #f85149; }
+  .cli-dot.yellow { background: #d29922; }
+  .cli-dot.green { background: #3fb950; }
+  .cli-name { font-size: 11px; color: #6e7681; margin-left: 6px; letter-spacing: 1px; }
+  .cli-output {
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    min-height: 140px;
+    max-height: 280px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+  }
+  .cli-output .prompt { color: #3fb950; }
+  .cli-output .cmd { color: #e6edf3; }
+  .cli-output .info { color: #79c0ff; }
+  .cli-output .warn { color: #d29922; }
+  .cli-output .ok { color: #3fb950; }
+  .cli-output .err { color: #f85149; }
+  .cli-input-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-top: 1px solid #1e3a5f;
+    background: #010409;
+    gap: 8px;
+  }
+  .cli-prompt-label { color: #3fb950; font-size: 13px; white-space: nowrap; }
+  .cli-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e6edf3;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    caret-color: #58a6ff;
+  }
+
+  /* Quiz */
+  .quiz-q {
+    font-size: 15px;
+    color: #e6edf3;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .quiz-opt {
+    background: #161b22;
+    border: 1px solid #1e3a5f;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #c8d6e5;
+    text-align: left;
+    font-family: 'Courier New', monospace;
+  }
+  .quiz-opt:hover { border-color: #58a6ff; color: #e6edf3; }
+  .quiz-opt.correct { background: #0d2a1a; border-color: #3fb950; color: #3fb950; }
+  .quiz-opt.wrong { background: #2a0d0d; border-color: #f85149; color: #f85149; }
+  .quiz-opt.reveal { background: #0d2a1a; border-color: #3fb950; color: #3fb950; }
+  .quiz-feedback {
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: #0d2a1a; border: 1px solid #3fb950; color: #7ee787; }
+  .quiz-feedback.wrong { background: #2a0d0d; border: 1px solid #f85149; color: #ffa198; }
+  .btn {
+    background: #1e3a5f;
+    border: 1px solid #58a6ff;
+    color: #58a6ff;
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: #2d4a6e; }
+  .btn.green { border-color: #3fb950; color: #3fb950; background: #0d2a1a; }
+  .btn.green:hover { background: #133820; }
+
+  /* Score */
+  .score-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .score-box {
+    background: #161b22;
+    border: 1px solid #1e3a5f;
+    border-radius: 4px;
+    padding: 10px 16px;
+    text-align: center;
+    flex: 1;
+  }
+  .score-num { font-size: 22px; font-weight: 700; }
+  .score-num.green { color: #3fb950; }
+  .score-num.red { color: #f85149; }
+  .score-num.blue { color: #58a6ff; }
+  .score-lbl { font-size: 10px; color: #6e7681; letter-spacing: 1px; margin-top: 2px; }
+
+  /* Flashcards */
+  .flashcard {
+    background: #0d1117;
+    border: 1px solid #1e3a5f;
+    border-radius: 6px;
+    padding: 30px 20px;
+    text-align: center;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .flashcard:hover { border-color: #58a6ff; }
+  .flashcard-front { font-size: 15px; color: #e6edf3; line-height: 1.5; }
+  .flashcard-back { font-size: 13px; color: #79c0ff; line-height: 1.6; display: none; }
+  .flashcard.flipped .flashcard-front { display: none; }
+  .flashcard.flipped .flashcard-back { display: block; }
+  .flashcard-hint { font-size: 10px; color: #6e7681; position: absolute; bottom: 10px; letter-spacing: 1px; }
+  .flashcard-tag {
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .tag-ch4 { background: #1a2a4a; color: #79c0ff; border: 1px solid #1e3a5f; }
+  .tag-ch5 { background: #1a3a2a; color: #7ee787; border: 1px solid #2a4a2a; }
+
+  /* Memory table */
+  .mem-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mem-table th {
+    background: #161b22;
+    color: #58a6ff;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #1e3a5f;
+  }
+  .mem-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #161b22;
+    color: #c8d6e5;
+    vertical-align: top;
+  }
+  .mem-table tr:hover td { background: #0d1117; }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+  .badge-ram { background: #1e3a5f; color: #79c0ff; }
+  .badge-nvram { background: #2a1a3a; color: #bc8cff; }
+  .badge-flash { background: #1a3a2a; color: #7ee787; }
+  .badge-rom { background: #3a2a1a; color: #e3b341; }
+
+  /* Cheatsheet grid */
+  .cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cheat-cmd {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #3fb950;
+    margin-bottom: 4px;
+  }
+  .cheat-desc { font-size: 12px; color: #8b949e; }
+
+  /* MAC table visual */
+  .mac-table-visual { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mac-table-visual th {
+    background: #161b22;
+    color: #d29922;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1px;
+    border: 1px solid #1e3a5f;
+  }
+  .mac-table-visual td {
+    padding: 7px 10px;
+    border: 1px solid #161b22;
+    color: #c8d6e5;
+    font-family: 'Courier New', monospace;
+  }
+  .mac-table-visual .port-col { color: #58a6ff; }
+  .mac-table-visual .type-col { color: #3fb950; }
+  .mac-table-visual .vlan-col { color: #bc8cff; }
+
+  /* STP visual */
+  .stp-demo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .stp-box {
+    background: #010409;
+    border: 1px solid #1e3a5f;
+    border-radius: 4px;
+    padding: 14px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .stp-label { font-size: 10px; letter-spacing: 1px; color: #6e7681; margin-bottom: 8px; text-transform: uppercase; }
+  .stp-bad { color: #f85149; font-size: 22px; }
+  .stp-good { color: #3fb950; font-size: 22px; }
+
+  /* Progress ring */
+  .progress-ring-container { text-align: center; padding: 10px 0; }
+
+  /* Lab checklist */
+  .lab-list { list-style: none; }
+  .lab-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 13px;
+    color: #c8d6e5;
+  }
+  .lab-check {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #1e3a5f;
+    border-radius: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 0.15s;
+  }
+  .lab-check.checked { background: #3fb950; border-color: #3fb950; color: #010409; font-size: 11px; }
+  .lab-item.done .lab-text { color: #3fb950; text-decoration: line-through; opacity: 0.7; }
+
+  /* Forwarding type */
+  .fw-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+  .fw-card {
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .fw-card.known { background: #0d2a1a; border: 1px solid #3fb950; }
+  .fw-card.unknown { background: #1a2a0d; border: 1px solid #d29922; }
+  .fw-card.broadcast { background: #2a1a0d; border: 1px solid #f85149; }
+  .fw-card-title { font-size: 11px; letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; }
+  .fw-card.known .fw-card-title { color: #3fb950; }
+  .fw-card.unknown .fw-card-title { color: #d29922; }
+  .fw-card.broadcast .fw-card-title { color: #f85149; }
+  .fw-card-action { font-size: 18px; font-weight: 700; margin: 4px 0; }
+  .fw-card.known .fw-card-action { color: #3fb950; }
+  .fw-card.unknown .fw-card-action { color: #d29922; }
+  .fw-card.broadcast .fw-card-action { color: #f85149; }
+  .fw-card-desc { font-size: 11px; color: #6e7681; line-height: 1.4; }
+
+  /* Quiz progress indicator */
+  .q-counter { font-size: 11px; color: #6e7681; letter-spacing: 1px; margin-bottom: 14px; }
+  .q-dots { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .q-dot { width: 8px; height: 8px; border-radius: 50%; background: #1e3a5f; }
+  .q-dot.correct { background: #3fb950; }
+  .q-dot.wrong { background: #f85149; }
+  .q-dot.current { background: #58a6ff; }
+
+  /* Mode indicator */
+  .mode-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-left: 6px;
+  }
+  .mode-user { background: #161b22; color: #6e7681; border: 1px solid #1e3a5f; }
+  .mode-priv { background: #1a2a4a; color: #79c0ff; border: 1px solid #1e3a5f; }
+  .mode-config { background: #1a3a2a; color: #7ee787; border: 1px solid #2a4a2a; }
+  .mode-if { background: #2a1a3a; color: #bc8cff; border: 1px solid #3a2a4a; }
+
+  .divider { height: 1px; background: #161b22; margin: 16px 0; }
+  .hint { font-size: 11px; color: #6e7681; margin-top: 6px; line-height: 1.5; }
+
+  @media (max-width: 600px) {
+    .cheat-grid { grid-template-columns: 1fr; }
+    .fw-grid { grid-template-columns: 1fr; }
+    .stp-demo { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">CCNA Study Lab</div>
+    <div class="header-sub">Chapter 4: CLI &nbsp;|&nbsp; Chapter 5: Ethernet Switching</div>
+  </div>
+  <div class="timer-block">
+    <div class="timer-display" id="timerDisplay">60:00</div>
+    <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">START</button>
+  </div>
+</div>
+<div class="progress-bar-outer">
+  <div class="progress-bar-inner" id="timerBar" style="width:100%"></div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-tab active" onclick="switchPanel('quiz')">🧪 Quiz</div>
+  <div class="nav-tab" onclick="switchPanel('cli')">💻 CLI Lab</div>
+  <div class="nav-tab" onclick="switchPanel('flash')">🃏 Flashcards</div>
+  <div class="nav-tab" onclick="switchPanel('ref')">📖 Reference</div>
+  <div class="nav-tab" onclick="switchPanel('labs')">✅ Lab Tracker</div>
+</div>
+
+<div class="content">
+
+<!-- ===== QUIZ PANEL ===== -->
+<div id="panel-quiz" class="panel active">
+  <div class="section-label">Practice Exam</div>
+  <div class="section-title">Chapter 4 & 5 Questions</div>
+
+  <div class="score-row">
+    <div class="score-box"><div class="score-num green" id="scoreCorrect">0</div><div class="score-lbl">Correct</div></div>
+    <div class="score-box"><div class="score-num red" id="scoreWrong">0</div><div class="score-lbl">Wrong</div></div>
+    <div class="score-box"><div class="score-num blue" id="scoreTotal">0</div><div class="score-lbl">Answered</div></div>
+  </div>
+
+  <div class="q-counter">
+    Question <span id="qNum">1</span> of <span id="qTotal">20</span>
+    <div class="q-dots" id="qDots"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" id="qChapter">Chapter 4 · CLI</div>
+    <div class="quiz-q" id="qText"></div>
+    <div class="quiz-options" id="qOptions"></div>
+    <div class="quiz-feedback" id="qFeedback"></div>
+    <button class="btn" id="qNext" onclick="nextQuestion()" style="display:none">Next Question →</button>
+  </div>
+</div>
+
+<!-- ===== CLI PANEL ===== -->
+<div id="panel-cli" class="panel">
+  <div class="section-label">Interactive Simulator</div>
+  <div class="section-title">Cisco IOS CLI Practice</div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-title">Current Mode
+      <span class="mode-pill" id="modePill">User EXEC</span>
+    </div>
+    <div class="hint" id="modeHint">Type <span style="color:#3fb950">enable</span> to enter Privileged EXEC mode.</div>
+  </div>
+
+  <div class="cli-window">
+    <div class="cli-titlebar">
+      <div class="cli-dot red"></div>
+      <div class="cli-dot yellow"></div>
+      <div class="cli-dot green"></div>
+      <div class="cli-name">Packet Tracer · Switch Simulator</div>
+    </div>
+    <div class="cli-output" id="cliOutput">
+<span class="ok">Switch CLI Simulator Ready.</span>
+<span class="info">Type commands below. Try: enable, configure terminal, hostname SW1</span>
+<span class="info">Type 'help' for a list of supported commands.</span>
+
+</div>
+    <div class="cli-input-row">
+      <div class="cli-prompt-label" id="cliPrompt">Switch></div>
+      <input class="cli-input" id="cliInput" type="text" autocomplete="off" spellcheck="false" placeholder="type a command..." onkeydown="handleCliKey(event)" />
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Quick Command Reference</div>
+    <div class="cheat-grid">
+      <div><div class="cheat-cmd">enable</div><div class="cheat-desc">Enter Privileged EXEC</div></div>
+      <div><div class="cheat-cmd">configure terminal</div><div class="cheat-desc">Enter Global Config</div></div>
+      <div><div class="cheat-cmd">hostname SW1</div><div class="cheat-desc">Set switch hostname</div></div>
+      <div><div class="cheat-cmd">interface g0/1</div><div class="cheat-desc">Enter interface config</div></div>
+      <div><div class="cheat-cmd">description PC-Port</div><div class="cheat-desc">Label an interface</div></div>
+      <div><div class="cheat-cmd">exit</div><div class="cheat-desc">Go back one mode</div></div>
+      <div><div class="cheat-cmd">end</div><div class="cheat-desc">Return to Priv EXEC</div></div>
+      <div><div class="cheat-cmd">copy running-config startup-config</div><div class="cheat-desc">Save config to NVRAM</div></div>
+      <div><div class="cheat-cmd">show running-config</div><div class="cheat-desc">View current config</div></div>
+      <div><div class="cheat-cmd">show startup-config</div><div class="cheat-desc">View saved config</div></div>
+      <div><div class="cheat-cmd">show version</div><div class="cheat-desc">IOS info & uptime</div></div>
+      <div><div class="cheat-cmd">show mac address-table</div><div class="cheat-desc">View MAC table</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FLASHCARD PANEL ===== -->
+<div id="panel-flash" class="panel">
+  <div class="section-label">Active Recall</div>
+  <div class="section-title">Tap to Flip</div>
+
+  <div class="score-row">
+    <div class="score-box"><div class="score-num blue" id="flashNum">1</div><div class="score-lbl">Card</div></div>
+    <div class="score-box"><div class="score-num" id="flashTotal" style="color:#6e7681">24</div><div class="score-lbl">Total</div></div>
+    <div class="score-box"><div class="score-num green" id="flashGot">0</div><div class="score-lbl">Got It</div></div>
+    <div class="score-box"><div class="score-num red" id="flashMiss">0</div><div class="score-lbl">Review</div></div>
+  </div>
+
+  <div class="flashcard" id="flashcard" onclick="flipCard()">
+    <div class="flashcard-tag tag-ch4" id="flashTag">Chapter 4</div>
+    <div class="flashcard-front" id="flashFront">Loading...</div>
+    <div class="flashcard-back" id="flashBack">...</div>
+    <div class="flashcard-hint">tap to reveal answer</div>
+  </div>
+
+  <div style="display:flex; gap:10px; justify-content:center">
+    <button class="btn" onclick="markCard(false)" style="border-color:#f85149;color:#f85149">✗ Review Again</button>
+    <button class="btn green" onclick="markCard(true)">✓ Got It</button>
+    <button class="btn" onclick="shuffleCards()">⟳ Shuffle</button>
+  </div>
+</div>
+
+<!-- ===== REFERENCE PANEL ===== -->
+<div id="panel-ref" class="panel">
+  <div class="section-label">Study Reference</div>
+  <div class="section-title">Key Concepts</div>
+
+  <!-- Memory types -->
+  <div class="card">
+    <div class="card-title">Switch Memory Types (Lab 9)</div>
+    <table class="mem-table">
+      <tr>
+        <th>Memory</th><th>Stores</th><th>Lost on Reboot?</th><th>Real World</th>
+      </tr>
+      <tr>
+        <td><span class="badge badge-ram">RAM</span></td>
+        <td>Running-config (active)</td>
+        <td style="color:#f85149">YES — lost</td>
+        <td>Your work right now</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-nvram">NVRAM</span></td>
+        <td>Startup-config (saved)</td>
+        <td style="color:#3fb950">NO — survives</td>
+        <td>Your saved game file</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-flash">Flash</span></td>
+        <td>IOS Operating System</td>
+        <td style="color:#3fb950">NO — survives</td>
+        <td>Your hard drive</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-rom">ROM</span></td>
+        <td>Bootstrap program</td>
+        <td style="color:#3fb950">NO — survives</td>
+        <td>Your device BIOS</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Frame forwarding -->
+  <div class="card">
+    <div class="card-title">Frame Forwarding Methods (Chapter 5)</div>
+    <div class="fw-grid">
+      <div class="fw-card known">
+        <div class="fw-card-title">Known Unicast</div>
+        <div class="fw-card-action">FORWARD</div>
+        <div class="fw-card-desc">MAC in table → send to ONE specific port only</div>
+      </div>
+      <div class="fw-card unknown">
+        <div class="fw-card-title">Unknown Unicast</div>
+        <div class="fw-card-action">FLOOD</div>
+        <div class="fw-card-desc">MAC NOT in table → send to ALL ports except incoming</div>
+      </div>
+      <div class="fw-card broadcast">
+        <div class="fw-card-title">Broadcast</div>
+        <div class="fw-card-action">FLOOD</div>
+        <div class="fw-card-desc">FFFF.FFFF.FFFF → send to ALL ports except incoming</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAC Address Table -->
+  <div class="card">
+    <div class="card-title">MAC Address Table Example</div>
+    <table class="mac-table-visual">
+      <tr>
+        <th>MAC Address</th><th>Port</th><th>Type</th><th>VLAN</th>
+      </tr>
+      <tr>
+        <td>00-1A-2B-3C-4D-5E</td>
+        <td class="port-col">Fa0/1</td>
+        <td class="type-col">Dynamic</td>
+        <td class="vlan-col">1</td>
+      </tr>
+      <tr>
+        <td>00-1A-2B-3C-4D-6F</td>
+        <td class="port-col">Fa0/2</td>
+        <td class="type-col">Dynamic</td>
+        <td class="vlan-col">1</td>
+      </tr>
+      <tr>
+        <td>00-1A-2B-3C-4D-7A</td>
+        <td class="port-col">Fa0/3</td>
+        <td class="type-col">Dynamic</td>
+        <td class="vlan-col">1</td>
+      </tr>
+    </table>
+    <div class="hint" style="margin-top:8px">⏱ Dynamic entries age out after <strong style="color:#d29922">300 seconds</strong> (5 minutes) of inactivity.</div>
+  </div>
+
+  <!-- STP -->
+  <div class="card">
+    <div class="card-title">Spanning Tree Protocol (STP)</div>
+    <div class="stp-demo">
+      <div class="stp-box">
+        <div class="stp-label">Without STP</div>
+        <div class="stp-bad">⟳ LOOP</div>
+        <div style="font-size:11px;color:#f85149;margin-top:6px">SW1 ↔ SW2 broadcast storm<br>Network crashes</div>
+      </div>
+      <div class="stp-box">
+        <div class="stp-label">With STP</div>
+        <div class="stp-good">✓ SAFE</div>
+        <div style="font-size:11px;color:#3fb950;margin-top:6px">One path blocked<br>Loop prevented</div>
+      </div>
+    </div>
+    <div class="hint">STP runs automatically on Cisco switches. It elects a Root Bridge and blocks redundant paths to prevent broadcast storms.</div>
+  </div>
+
+  <!-- CLI Modes -->
+  <div class="card">
+    <div class="card-title">CLI Mode Ladder</div>
+    <div style="font-size:13px; line-height:2">
+      <div><span class="mode-pill mode-user">User EXEC</span> → <span style="color:#3fb950">Switch></span> — view only, no changes</div>
+      <div style="margin-left:20px; color:#6e7681; font-size:11px">↓ type: enable</div>
+      <div><span class="mode-pill mode-priv">Privileged EXEC</span> → <span style="color:#79c0ff">Switch#</span> — show commands, copy, debug</div>
+      <div style="margin-left:20px; color:#6e7681; font-size:11px">↓ type: configure terminal</div>
+      <div><span class="mode-pill mode-config">Global Config</span> → <span style="color:#7ee787">Switch(config)#</span> — make changes</div>
+      <div style="margin-left:20px; color:#6e7681; font-size:11px">↓ type: interface g0/1</div>
+      <div><span class="mode-pill mode-if">Interface Config</span> → <span style="color:#bc8cff">Switch(config-if)#</span> — port settings</div>
+    </div>
+  </div>
+
+  <!-- Access methods -->
+  <div class="card">
+    <div class="card-title">Access Methods (Lab 11)</div>
+    <table class="mem-table">
+      <tr><th>Method</th><th>Physical?</th><th>Encrypted?</th><th>Use Case</th></tr>
+      <tr><td style="color:#e3b341">Console</td><td style="color:#3fb950">Yes</td><td>N/A</td><td>Initial setup, emergencies</td></tr>
+      <tr><td style="color:#f85149">Telnet</td><td>No (remote)</td><td style="color:#f85149">NO — cleartext</td><td>Old, insecure — avoid</td></tr>
+      <tr><td style="color:#3fb950">SSH</td><td>No (remote)</td><td style="color:#3fb950">YES — encrypted</td><td>Secure remote management</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== LAB TRACKER ===== -->
+<div id="panel-labs" class="panel">
+  <div class="section-label">Lab Checklist</div>
+  <div class="section-title">Chapter 4 — Complete All 11 Labs</div>
+
+  <div class="card">
+    <div class="card-title">Chapter 4: CLI Labs</div>
+    <ul class="lab-list" id="labList4"></ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Chapter 5: Ethernet Switching Labs</div>
+    <ul class="lab-list" id="labList5"></ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Branch Switch Project</div>
+    <ul class="lab-list" id="labListProject"></ul>
+  </div>
+
+  <div class="card" style="background:#0d2a1a; border-color:#3fb950">
+    <div class="card-title" style="color:#3fb950">Session Completion</div>
+    <div style="font-size:24px; font-weight:700; color:#3fb950" id="labPercent">0%</div>
+    <div style="font-size:11px; color:#6e7681; margin-top:4px"><span id="labDone">0</span> of <span id="labTotalCount">0</span> tasks complete</div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ==================== TIMER ====================
+let timerSecs = 3600;
+let timerRunning = false;
+let timerInterval = null;
+const totalSecs = 3600;
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerBtn').textContent = 'START';
+  } else {
+    timerRunning = true;
+    document.getElementById('timerBtn').textContent = 'PAUSE';
+    timerInterval = setInterval(tickTimer, 1000);
+  }
+}
+
+function tickTimer() {
+  if (timerSecs <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById('timerDisplay').textContent = 'DONE!';
+    document.getElementById('timerBtn').textContent = 'DONE';
+    return;
+  }
+  timerSecs--;
+  const m = Math.floor(timerSecs / 60);
+  const s = timerSecs % 60;
+  const disp = document.getElementById('timerDisplay');
+  disp.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  disp.className = 'timer-display' + (timerSecs < 600 ? ' danger' : timerSecs < 1200 ? ' warning' : '');
+  document.getElementById('timerBar').style.width = (timerSecs / totalSecs * 100) + '%';
+}
+
+// ==================== PANEL SWITCHING ====================
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ==================== QUIZ ====================
+const questions = [
+  // Chapter 4
+  { ch: 'Chapter 4 · CLI', q: 'What command moves you from User EXEC mode to Privileged EXEC mode?', opts: ['configure terminal', 'enable', 'exit', 'login'], ans: 1, exp: '"enable" is the command that elevates you from Switch> (User EXEC) to Switch# (Privileged EXEC). Think of it like entering admin mode.' },
+  { ch: 'Chapter 4 · CLI', q: 'You are at Switch# and want to start making configuration changes. What command do you type?', opts: ['enable', 'configure terminal', 'interface g0/1', 'hostname SW1'], ans: 1, exp: '"configure terminal" (or conf t) takes you from Privileged EXEC (Switch#) into Global Config mode (Switch(config)#). This is where real changes happen.' },
+  { ch: 'Chapter 4 · CLI', q: 'What command saves your running configuration to NVRAM so it survives a reboot?', opts: ['save config', 'write config', 'copy running-config startup-config', 'backup running-config'], ans: 2, exp: '"copy running-config startup-config" copies your current work from RAM to NVRAM. If you skip this, all changes are lost on reboot — like not saving a file before closing it.' },
+  { ch: 'Chapter 4 · CLI', q: 'Which memory type stores the RUNNING configuration?', opts: ['NVRAM', 'Flash', 'ROM', 'RAM'], ans: 3, exp: 'RAM holds the running-config. It is volatile — meaning it is LOST when the switch reboots. That is why you must always save to NVRAM.' },
+  { ch: 'Chapter 4 · CLI', q: 'Which memory type stores the IOS Operating System?', opts: ['RAM', 'NVRAM', 'Flash', 'ROM'], ans: 2, exp: 'Flash memory stores the Cisco IOS. Think of it like your computer\'s hard drive — it keeps the OS even when power is off.' },
+  { ch: 'Chapter 4 · CLI', q: 'You are in Switch(config-if)# mode. What command takes you back ONE level to Switch(config)#?', opts: ['end', 'quit', 'exit', 'back'], ans: 2, exp: '"exit" goes back ONE level at a time. So from interface config, it takes you back to global config. "end" would take you all the way back to Privileged EXEC.' },
+  { ch: 'Chapter 4 · CLI', q: 'What command shows you the current, active configuration on the switch?', opts: ['show startup-config', 'show running-config', 'show version', 'show interfaces'], ans: 1, exp: '"show running-config" displays what is currently in RAM — your active configuration. "show startup-config" shows what is saved in NVRAM.' },
+  { ch: 'Chapter 4 · CLI', q: 'ROM stores which program on a Cisco switch?', opts: ['Running configuration', 'IOS Operating System', 'Startup configuration', 'Bootstrap program'], ans: 3, exp: 'ROM stores the Bootstrap program — the first code that runs when the switch powers on. It is like the BIOS on a PC. It locates and loads the IOS from Flash.' },
+  { ch: 'Chapter 4 · CLI', q: 'Which access method requires a physical cable connection to the device?', opts: ['SSH', 'Telnet', 'Console', 'HTTP'], ans: 2, exp: 'Console access uses a physical console cable (RJ-45 to USB or serial) plugged directly into the device. This is how you access a brand new switch before it has an IP address.' },
+  { ch: 'Chapter 4 · CLI', q: 'Which remote access method sends data in CLEAR TEXT and is considered insecure?', opts: ['SSH', 'Console', 'Telnet', 'HTTPS'], ans: 2, exp: 'Telnet sends everything — including passwords — in plain text. Anyone with a packet sniffer can see your credentials. Always use SSH instead for secure remote management.' },
+  // Chapter 5
+  { ch: 'Chapter 5 · Switching', q: 'A switch operates at which layer of the OSI model?', opts: ['Layer 1 (Physical)', 'Layer 2 (Data Link)', 'Layer 3 (Network)', 'Layer 4 (Transport)'], ans: 1, exp: 'Switches operate at Layer 2 — the Data Link layer. They use MAC addresses (not IP addresses) to forward frames. Routers work at Layer 3 using IP addresses.' },
+  { ch: 'Chapter 5 · Switching', q: 'A frame arrives with a destination MAC address that IS in the MAC address table. What does the switch do?', opts: ['Flood all ports', 'Drop the frame', 'Forward to one specific port', 'Send back to sender'], ans: 2, exp: 'This is a Known Unicast — the switch knows exactly where to send it. It forwards the frame out ONLY the specific port in the MAC table. This is efficient and reduces unnecessary traffic.' },
+  { ch: 'Chapter 5 · Switching', q: 'A frame arrives with a destination MAC of FFFF.FFFF.FFFF. What does the switch do?', opts: ['Drop it — invalid address', 'Forward to one port', 'Flood all ports except incoming', 'Return to sender'], ans: 2, exp: 'FFFF.FFFF.FFFF is the Broadcast MAC address. The switch floods it out ALL ports EXCEPT the port it came in on. ARP requests and DHCP Discover use broadcast.' },
+  { ch: 'Chapter 5 · Switching', q: 'A frame arrives with a destination MAC that is NOT in the MAC address table. What does the switch do?', opts: ['Drop the frame', 'Forward to port 1', 'Flood all ports except incoming', 'Ask a router'], ans: 2, exp: 'This is an Unknown Unicast. Since the switch does not know where that device is, it floods the frame everywhere (except the incoming port) hoping to find it.' },
+  { ch: 'Chapter 5 · Switching', q: 'A switch learns MAC addresses from the _______ MAC address of incoming frames.', opts: ['Destination', 'Source', 'Broadcast', 'Multicast'], ans: 1, exp: 'Switches LEARN from the SOURCE MAC — who sent the frame and which port it came from. They FORWARD using the DESTINATION MAC. Remember: Learn from Source, Forward to Destination.' },
+  { ch: 'Chapter 5 · Switching', q: 'What is the default MAC address table aging time on a Cisco switch?', opts: ['60 seconds', '120 seconds', '300 seconds', '600 seconds'], ans: 2, exp: '300 seconds (5 minutes) is the default aging time. If a device does not send any traffic for 5 minutes, its MAC entry is removed from the table.' },
+  { ch: 'Chapter 5 · Switching', q: 'What command displays the MAC address table on a Cisco switch?', opts: ['show ip table', 'show arp', 'show mac address-table', 'show frame-table'], ans: 2, exp: '"show mac address-table" is the command. You can run it from Privileged EXEC mode (Switch#). It shows MAC addresses, their ports, type (dynamic/static), and VLAN.' },
+  { ch: 'Chapter 5 · Switching', q: 'What problem does Spanning Tree Protocol (STP) solve?', opts: ['IP address conflicts', 'Layer 2 broadcast loops', 'Slow internet speeds', 'VLAN mismatches'], ans: 1, exp: 'STP prevents Layer 2 loops that occur when there are redundant links between switches. Without STP, a broadcast frame would loop forever, crashing the network (broadcast storm).' },
+  { ch: 'Chapter 5 · Switching', q: 'What command clears all dynamic entries from the MAC address table?', opts: ['delete mac address-table', 'clear mac address-table dynamic', 'flush mac table', 'reset mac-table'], ans: 1, exp: '"clear mac address-table dynamic" removes all learned MAC entries. The switch will then re-learn addresses as new frames arrive. Useful for troubleshooting.' },
+  { ch: 'Chapter 5 · Switching', q: 'Which command shows the current MAC address aging time?', opts: ['show mac timer', 'show aging-time', 'show mac address-table aging-time', 'show mac expiry'], ans: 2, exp: '"show mac address-table aging-time" shows the current aging timer. The default is 300 seconds. You can change it with mac address-table aging-time [seconds] in global config.' },
+];
+
+let qIndex = 0;
+let correct = 0;
+let wrong = 0;
+let answered = [];
+let dotEls = [];
+
+function initQuiz() {
+  const dotsEl = document.getElementById('qDots');
+  dotsEl.innerHTML = '';
+  dotEls = [];
+  questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'q-dot' + (i === 0 ? ' current' : '');
+    dotsEl.appendChild(d);
+    dotEls.push(d);
+  });
+  document.getElementById('qTotal').textContent = questions.length;
+  loadQuestion();
+}
+
+function loadQuestion() {
+  const q = questions[qIndex];
+  document.getElementById('qNum').textContent = qIndex + 1;
+  document.getElementById('qChapter').textContent = q.ch;
+  document.getElementById('qText').textContent = q.q;
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = String.fromCharCode(65 + i) + '. ' + opt;
+    btn.onclick = () => answerQ(i, btn);
+    opts.appendChild(btn);
+  });
+  document.getElementById('qFeedback').className = 'quiz-feedback';
+  document.getElementById('qFeedback').textContent = '';
+  document.getElementById('qNext').style.display = 'none';
+}
+
+function answerQ(chosen, btn) {
+  const q = questions[qIndex];
+  const allBtns = document.querySelectorAll('.quiz-opt');
+  allBtns.forEach(b => b.onclick = null);
+
+  const fb = document.getElementById('qFeedback');
+  if (chosen === q.ans) {
+    btn.classList.add('correct');
+    correct++;
+    document.getElementById('scoreCorrect').textContent = correct;
+    fb.className = 'quiz-feedback correct show';
+    fb.textContent = '✓ Correct! ' + q.exp;
+    if (dotEls[qIndex]) dotEls[qIndex].className = 'q-dot correct';
+  } else {
+    btn.classList.add('wrong');
+    allBtns[q.ans].classList.add('reveal');
+    wrong++;
+    document.getElementById('scoreWrong').textContent = wrong;
+    fb.className = 'quiz-feedback wrong show';
+    fb.textContent = '✗ Incorrect. ' + q.exp;
+    if (dotEls[qIndex]) dotEls[qIndex].className = 'q-dot wrong';
+  }
+  document.getElementById('scoreTotal').textContent = correct + wrong;
+  document.getElementById('qNext').style.display = 'inline-block';
+}
+
+function nextQuestion() {
+  qIndex = (qIndex + 1) % questions.length;
+  if (dotEls[qIndex] && !dotEls[qIndex].classList.contains('correct') && !dotEls[qIndex].classList.contains('wrong')) {
+    dotEls[qIndex].classList.add('current');
+  }
+  loadQuestion();
+}
+
+initQuiz();
+
+// ==================== CLI SIMULATOR ====================
+let cliMode = 'user'; // user, priv, config, if, if-detail
+let cliHostname = 'Switch';
+let savedConfig = {};
+let runningConfig = { hostname: 'Switch', interfaces: {} };
+let currentIf = null;
+let cliHistory = [];
+let cliHistIdx = -1;
+
+const modes = {
+  user: () => cliHostname + '>',
+  priv: () => cliHostname + '#',
+  config: () => cliHostname + '(config)#',
+  if: () => cliHostname + '(config-if)#',
+};
+
+const modePills = {
+  user: ['User EXEC', 'mode-user'],
+  priv: ['Privileged EXEC', 'mode-priv'],
+  config: ['Global Config', 'mode-config'],
+  if: ['Interface Config (' + (currentIf || '') + ')', 'mode-if'],
+};
+
+const modeHints = {
+  user: 'Type <span style="color:#3fb950">enable</span> to enter Privileged EXEC mode.',
+  priv: 'Type <span style="color:#3fb950">configure terminal</span> to make config changes, or use show commands.',
+  config: 'Type <span style="color:#3fb950">hostname NAME</span> to set hostname, or <span style="color:#3fb950">interface g0/1</span> to configure a port.',
+  if: 'Type <span style="color:#3fb950">description TEXT</span> to label this port. Type <span style="color:#3fb950">exit</span> to go back.',
+};
+
+function updatePrompt() {
+  document.getElementById('cliPrompt').textContent = modes[cliMode]();
+  const pill = document.getElementById('modePill');
+  const info = modePills[cliMode === 'if' ? 'if' : cliMode];
+  pill.textContent = cliMode === 'if' ? 'Interface Config (' + (currentIf || '') + ')' : info[0];
+  pill.className = 'mode-pill ' + (cliMode === 'if' ? 'mode-if' : info[1]);
+  document.getElementById('modeHint').innerHTML = modeHints[cliMode];
+}
+
+function cliPrint(lines) {
+  const out = document.getElementById('cliOutput');
+  lines.forEach(l => {
+    const div = document.createElement('div');
+    div.innerHTML = l;
+    out.appendChild(div);
+  });
+  out.scrollTop = out.scrollHeight;
+}
+
+function handleCliKey(e) {
+  if (e.key === 'Enter') {
+    const inp = document.getElementById('cliInput');
+    const cmd = inp.value.trim();
+    inp.value = '';
+    if (cmd) { cliHistory.unshift(cmd); cliHistIdx = -1; }
+    processCmd(cmd);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (cliHistIdx < cliHistory.length - 1) {
+      cliHistIdx++;
+      document.getElementById('cliInput').value = cliHistory[cliHistIdx];
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (cliHistIdx > 0) { cliHistIdx--; document.getElementById('cliInput').value = cliHistory[cliHistIdx]; }
+    else { cliHistIdx = -1; document.getElementById('cliInput').value = ''; }
+  } else if (e.key === 'Tab') {
+    e.preventDefault();
+    autoComplete();
+  }
+}
+
+const validCmds = ['enable','configure terminal','configure','hostname','interface','description','exit','end','copy running-config startup-config','show running-config','show startup-config','show version','show mac address-table','show mac address-table dynamic','show mac address-table aging-time','show interfaces status','clear mac address-table dynamic','help','?'];
+
+function autoComplete() {
+  const inp = document.getElementById('cliInput');
+  const val = inp.value.toLowerCase();
+  const matches = validCmds.filter(c => c.startsWith(val));
+  if (matches.length === 1) { inp.value = matches[0]; }
+  else if (matches.length > 1) {
+    cliPrint([
+      '<span class="prompt">' + modes[cliMode]() + '</span><span class="cmd">' + inp.value + '</span>',
+      '<span class="info">' + matches.join('&nbsp;&nbsp;') + '</span>'
+    ]);
+  }
+}
+
+function processCmd(raw) {
+  const prompt = '<span class="prompt">' + modes[cliMode]() + ' </span><span class="cmd">' + raw + '</span>';
+  cliPrint([prompt]);
+
+  if (!raw) return;
+  const cmd = raw.toLowerCase().trim();
+
+  // Help
+  if (cmd === '?' || cmd === 'help') {
+    cliPrint([
+      '<span class="info">Available commands in this mode:</span>',
+      ...(cliMode === 'user' ? ['<span class="ok">enable</span>  — enter privileged EXEC', '<span class="ok">exit</span>  — exit'] :
+         cliMode === 'priv' ? ['<span class="ok">configure terminal</span>  — enter global config', '<span class="ok">show running-config</span>', '<span class="ok">show startup-config</span>', '<span class="ok">show version</span>', '<span class="ok">show mac address-table</span>', '<span class="ok">copy running-config startup-config</span>', '<span class="ok">clear mac address-table dynamic</span>'] :
+         cliMode === 'config' ? ['<span class="ok">hostname NAME</span>  — set hostname', '<span class="ok">interface g0/1</span>  — enter interface config', '<span class="ok">exit</span>  — back to priv exec', '<span class="ok">end</span>  — back to priv exec'] :
+         ['<span class="ok">description TEXT</span>  — label port', '<span class="ok">exit</span>  — back to config', '<span class="ok">end</span>  — back to priv exec'])
+    ]);
+    return;
+  }
+
+  // Mode navigation
+  if (cmd === 'enable') {
+    if (cliMode === 'user') { cliMode = 'priv'; cliPrint(['']); }
+    else cliPrint(['<span class="warn">Already in privileged mode.</span>']);
+    updatePrompt(); return;
+  }
+  if (cmd === 'configure terminal' || cmd === 'conf t' || cmd === 'configure') {
+    if (cliMode === 'priv') { cliMode = 'config'; cliPrint(['<span class="info">Enter configuration commands, one per line. End with CNTL/Z.</span>']); }
+    else if (cliMode === 'user') cliPrint(['<span class="err">% Error: Must be in privileged EXEC mode. Type "enable" first.</span>']);
+    else cliPrint(['<span class="warn">Already in configuration mode.</span>']);
+    updatePrompt(); return;
+  }
+  if (cmd === 'exit') {
+    if (cliMode === 'if') { cliMode = 'config'; currentIf = null; }
+    else if (cliMode === 'config') { cliMode = 'priv'; }
+    else if (cliMode === 'priv') { cliMode = 'user'; }
+    else cliPrint(['<span class="info">Connection closed.</span>']);
+    cliPrint(['']);
+    updatePrompt(); return;
+  }
+  if (cmd === 'end' || cmd === '^z') {
+    if (cliMode === 'config' || cliMode === 'if') {
+      cliMode = 'priv'; currentIf = null;
+      cliPrint(['']);
+    } else cliPrint(['<span class="warn">Already at privileged EXEC.</span>']);
+    updatePrompt(); return;
+  }
+
+  // Config commands
+  if (cmd.startsWith('hostname ') && cliMode === 'config') {
+    const newName = raw.split(' ').slice(1).join(' ');
+    if (!newName) { cliPrint(['<span class="err">% Error: Missing hostname argument.</span>']); return; }
+    cliHostname = newName;
+    runningConfig.hostname = newName;
+    cliPrint(['']);
+    updatePrompt(); return;
+  }
+  if (cmd.startsWith('interface ') && (cliMode === 'config' || cliMode === 'priv')) {
+    if (cliMode === 'priv') { cliPrint(['<span class="err">% Error: Must be in global config mode first. Type "configure terminal".</span>']); return; }
+    const ifName = raw.split(' ').slice(1).join(' ');
+    currentIf = ifName;
+    if (!runningConfig.interfaces[ifName]) runningConfig.interfaces[ifName] = {};
+    cliMode = 'if';
+    cliPrint(['']);
+    updatePrompt(); return;
+  }
+  if (cmd.startsWith('description ') && cliMode === 'if') {
+    const desc = raw.split(' ').slice(1).join(' ');
+    if (currentIf) runningConfig.interfaces[currentIf].description = desc;
+    cliPrint(['']);
+    return;
+  }
+  if (cmd === 'copy running-config startup-config' && cliMode === 'priv') {
+    cliPrint([
+      '<span class="info">Destination filename [startup-config]? </span>',
+      '<span class="info">Building configuration...</span>',
+      '<span class="ok">[OK]</span>'
+    ]);
+    savedConfig = JSON.parse(JSON.stringify(runningConfig));
+    return;
+  }
+
+  // Show commands
+  if (cmd === 'show running-config' && cliMode === 'priv') {
+    const lines = [
+      '<span class="info">Building configuration...</span>',
+      '<span class="info">Current configuration:</span>',
+      '<span class="ok">!</span>',
+      'version 15.0',
+      '<span class="ok">!</span>',
+      'hostname ' + runningConfig.hostname,
+      '<span class="ok">!</span>',
+    ];
+    Object.entries(runningConfig.interfaces).forEach(([iface, cfg]) => {
+      lines.push('interface ' + iface);
+      if (cfg.description) lines.push(' description ' + cfg.description);
+      lines.push('<span class="ok">!</span>');
+    });
+    lines.push('<span class="ok">end</span>');
+    cliPrint(lines); return;
+  }
+  if (cmd === 'show startup-config' && cliMode === 'priv') {
+    if (!savedConfig.hostname) {
+      cliPrint(['<span class="warn">startup-config is not present</span>']); return;
+    }
+    const lines = [
+      '<span class="info">! Startup Config</span>',
+      '<span class="ok">!</span>',
+      'hostname ' + savedConfig.hostname,
+      '<span class="ok">!</span>',
+    ];
+    Object.entries(savedConfig.interfaces || {}).forEach(([iface, cfg]) => {
+      lines.push('interface ' + iface);
+      if (cfg.description) lines.push(' description ' + cfg.description);
+      lines.push('<span class="ok">!</span>');
+    });
+    lines.push('<span class="ok">end</span>');
+    cliPrint(lines); return;
+  }
+  if (cmd === 'show version' && cliMode === 'priv') {
+    cliPrint([
+      'Cisco IOS Software, Version 15.0(2)SE',
+      runningConfig.hostname + ' uptime is 1 day, 3 hours, 22 minutes',
+      'System image file is "flash:c2960-lanbasek9-mz.150-2.SE.bin"',
+      '<span class="info">cisco WS-C2960-24TC-L (PowerPC405) processor</span>',
+      'Base ethernet MAC Address: 00:1A:2B:3C:4D:5E',
+      '24 FastEthernet interfaces, 2 GigabitEthernet interfaces',
+      '<span class="info">32K bytes of flash-simulated non-volatile configuration memory.</span>',
+    ]); return;
+  }
+  if (cmd === 'show mac address-table' && cliMode === 'priv') {
+    cliPrint([
+      '          Mac Address Table',
+      '-------------------------------------------',
+      '<span class="warn">Vlan    Mac Address       Type        Ports</span>',
+      '----    -----------       --------    -----',
+      '   1    001a.2b3c.4d5e    DYNAMIC     Fa0/1',
+      '   1    001a.2b3c.4d6f    DYNAMIC     Fa0/2',
+      '   1    001a.2b3c.4d7a    DYNAMIC     Fa0/3',
+      '<span class="info">Total Mac Addresses for this criterion: 3</span>',
+    ]); return;
+  }
+  if (cmd === 'show mac address-table dynamic' && cliMode === 'priv') {
+    cliPrint([
+      '          Mac Address Table',
+      '-------------------------------------------',
+      '<span class="warn">Vlan    Mac Address       Type        Ports</span>',
+      '----    -----------       --------    -----',
+      '   1    001a.2b3c.4d5e    DYNAMIC     Fa0/1',
+      '   1    001a.2b3c.4d6f    DYNAMIC     Fa0/2',
+      '   1    001a.2b3c.4d7a    DYNAMIC     Fa0/3',
+    ]); return;
+  }
+  if (cmd === 'show mac address-table aging-time' && cliMode === 'priv') {
+    cliPrint([
+      'Global Aging Time: <span class="ok">300</span>',
+      'Vlan    Aging Time',
+      '----    ----------',
+      '   1      300',
+    ]); return;
+  }
+  if (cmd === 'show interfaces status' && cliMode === 'priv') {
+    cliPrint([
+      '<span class="warn">Port    Name                Status       Vlan  Duplex  Speed  Type</span>',
+      'Fa0/1   ' + (runningConfig.interfaces['g0/1']?.description || 'PC-Port       ') + '    connected    1     a-full  100    10/100BaseTX',
+      'Fa0/2                     connected    1     a-full  100    10/100BaseTX',
+      'Fa0/3                     notconnect   1     auto    auto   10/100BaseTX',
+      'Gi0/1                     notconnect   1     auto    auto   10/100/1000BaseTX',
+    ]); return;
+  }
+  if (cmd === 'clear mac address-table dynamic' && cliMode === 'priv') {
+    cliPrint(['<span class="ok">MAC address table cleared.</span>']); return;
+  }
+
+  // Unrecognized
+  cliPrint(['<span class="err">% Unrecognized command: "' + raw + '"</span>',
+    '<span class="info">Type "?" or "help" for available commands.</span>']);
+}
+
+updatePrompt();
+
+// ==================== FLASHCARDS ====================
+let flashCards = [
+  { ch: 'ch4', front: 'What are the 4 CLI modes in order, from lowest to highest?', back: 'User EXEC (Switch>) → Privileged EXEC (Switch#) → Global Config (Switch(config)#) → Interface Config (Switch(config-if)#)' },
+  { ch: 'ch4', front: 'What does RAM store on a Cisco switch?', back: 'The Running Configuration — your current active settings. It is VOLATILE — lost on reboot unless saved.' },
+  { ch: 'ch4', front: 'What does NVRAM store?', back: 'The Startup Configuration — the saved config that loads on boot. Use "copy running-config startup-config" to save here.' },
+  { ch: 'ch4', front: 'What does Flash memory store?', back: 'The IOS Operating System (Cisco operating system). Think of it as the hard drive.' },
+  { ch: 'ch4', front: 'What does ROM store?', back: 'The Bootstrap Program — first code that runs on power-on. It finds and loads the IOS from Flash. Like a PC BIOS.' },
+  { ch: 'ch4', front: 'Command to save your configuration so it survives a reboot?', back: 'copy running-config startup-config\n(run from Privileged EXEC mode: Switch#)' },
+  { ch: 'ch4', front: 'How do you label/document a switch port?', back: 'From interface config mode:\nSwitch(config-if)# description PC-Port\nThis is just a text label for documentation.' },
+  { ch: 'ch4', front: 'What is the difference between "exit" and "end"?', back: '"exit" goes back ONE mode level.\n"end" jumps all the way back to Privileged EXEC (Switch#) from anywhere.' },
+  { ch: 'ch4', front: 'Which access method is encrypted and should always be used for remote management?', back: 'SSH (Secure Shell) — encrypted, secure.\nNever use Telnet in production — it sends passwords in plain text.' },
+  { ch: 'ch4', front: 'What does "show running-config" display?', back: 'The current active configuration stored in RAM — what the switch is doing RIGHT NOW.' },
+  { ch: 'ch4', front: 'What does "show startup-config" display?', back: 'The saved configuration in NVRAM — what the switch will load when it reboots.' },
+  { ch: 'ch4', front: 'What is the purpose of "show version"?', back: 'Shows IOS version, uptime, hardware info, memory, number of interfaces, and MAC address.' },
+  { ch: 'ch5', front: 'What layer does a switch operate at?', back: 'Layer 2 — Data Link Layer. Switches use MAC addresses to forward frames, NOT IP addresses.' },
+  { ch: 'ch5', front: 'A switch LEARNS from which MAC address?', back: 'The SOURCE MAC address of incoming frames.\nRemember: LEARN from Source, FORWARD to Destination.' },
+  { ch: 'ch5', front: 'What happens when a frame arrives with a KNOWN destination MAC?', back: 'Known Unicast → FORWARD out ONE specific port. Efficient — no wasted traffic.' },
+  { ch: 'ch5', front: 'What happens when a frame arrives with an UNKNOWN destination MAC?', back: 'Unknown Unicast → FLOOD out ALL ports EXCEPT the incoming port. Switch does not know where the device is.' },
+  { ch: 'ch5', front: 'What is the broadcast MAC address?', back: 'FFFF.FFFF.FFFF — all ones.\nBroadcast frames are flooded to ALL ports except the incoming port.' },
+  { ch: 'ch5', front: 'What is the default MAC address aging time?', back: '300 seconds (5 minutes).\nIf a device sends no traffic for 300 sec, its MAC entry is deleted from the table.' },
+  { ch: 'ch5', front: 'What does STP (Spanning Tree Protocol) do?', back: 'Prevents Layer 2 loops by blocking redundant links between switches. Stops broadcast storms from crashing the network.' },
+  { ch: 'ch5', front: 'Command to view the MAC address table?', back: 'SW1# show mac address-table\n(run from Privileged EXEC mode)' },
+  { ch: 'ch5', front: 'Command to clear all dynamic MAC entries?', back: 'SW1# clear mac address-table dynamic' },
+  { ch: 'ch5', front: 'What real-world protocol uses Broadcast frames?', back: 'ARP (Address Resolution Protocol) and DHCP Discover both use broadcast to find devices on the network.' },
+  { ch: 'ch5', front: 'Do switches use IP addresses to forward frames?', back: 'NO. Switches ONLY use MAC addresses at Layer 2. Routers use IP addresses at Layer 3.' },
+  { ch: 'ch5', front: 'What command shows MAC aging time?', back: 'SW1# show mac address-table aging-time' },
+];
+
+let flashIdx = 0;
+let flashGot = 0;
+let flashMiss = 0;
+
+function loadFlash() {
+  const card = flashCards[flashIdx];
+  document.getElementById('flashNum').textContent = flashIdx + 1;
+  document.getElementById('flashTotal').textContent = flashCards.length;
+  document.getElementById('flashGot').textContent = flashGot;
+  document.getElementById('flashMiss').textContent = flashMiss;
+  document.getElementById('flashTag').textContent = card.ch === 'ch4' ? 'Chapter 4 · CLI' : 'Chapter 5 · Switching';
+  document.getElementById('flashTag').className = 'flashcard-tag ' + (card.ch === 'ch4' ? 'tag-ch4' : 'tag-ch5');
+  document.getElementById('flashFront').textContent = card.front;
+  document.getElementById('flashBack').style.whiteSpace = 'pre-line';
+  document.getElementById('flashBack').textContent = card.back;
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+
+function flipCard() {
+  document.getElementById('flashcard').classList.toggle('flipped');
+  document.querySelector('.flashcard-hint').textContent =
+    document.getElementById('flashcard').classList.contains('flipped') ? 'tap to see question' : 'tap to reveal answer';
+}
+
+function markCard(got) {
+  if (got) { flashGot++; }
+  else { flashMiss++; }
+  flashIdx = (flashIdx + 1) % flashCards.length;
+  loadFlash();
+}
+
+function shuffleCards() {
+  for (let i = flashCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [flashCards[i], flashCards[j]] = [flashCards[j], flashCards[i]];
+  }
+  flashIdx = 0;
+  flashGot = 0; flashMiss = 0;
+  loadFlash();
+}
+
+loadFlash();
+
+// ==================== LAB TRACKER ====================
+const labs4 = [
+  'Lab 1: Enter modes — enable, configure terminal, exit, end',
+  'Lab 2: Set hostname to SW1 and verify with show running-config',
+  'Lab 3: Save config — copy running-config startup-config',
+  'Lab 4: Run show running-config, startup-config, version, mac-address-table',
+  'Lab 5: Use ? and sh? to explore CLI help system',
+  'Lab 6: Navigate from interface config back to User EXEC using exit/end',
+  'Lab 7: Configure g0/1 = PC-Port, g0/2 = Printer-Port, g0/3 = Server-Port',
+  'Lab 8: Save config and verify with show startup-config',
+  'Lab 9: Identify what RAM, NVRAM, Flash, and ROM each store',
+  'Lab 10: Complete full workflow — hostname, port descriptions, save config',
+  'Lab 11: Answer access method questions — Console, Telnet, SSH',
+];
+
+const labs5 = [
+  'Understand: Switch learns from SOURCE MAC, forwards to DESTINATION MAC',
+  'Practice: Known Unicast → forward to one port only',
+  'Practice: Unknown Unicast → flood all ports except incoming',
+  'Practice: Broadcast (FFFF.FFFF.FFFF) → flood all ports except incoming',
+  'Run: show mac address-table and identify entries',
+  'Run: show mac address-table aging-time (default = 300 sec)',
+  'Run: clear mac address-table dynamic',
+  'Understand: STP prevents Layer 2 loops by blocking redundant paths',
+];
+
+const labsProject = [
+  'Set hostname to Columbus-SW1',
+  'Configure g0/1 with description Reception',
+  'Configure g0/2 with description Printer',
+  'Configure g0/3 with description Conference-Room',
+  'Configure g0/4 with description Server',
+  'Run show running-config and verify all settings',
+  'Save with copy running-config startup-config',
+  'Create a document with: hostname, port descriptions, running-config, startup-config screenshots',
+];
+
+function buildLabList(arrId, labArr) {
+  const el = document.getElementById(arrId);
+  labArr.forEach((lab, i) => {
+    const li = document.createElement('li');
+    li.className = 'lab-item';
+    li.id = arrId + '-' + i;
+    const chk = document.createElement('div');
+    chk.className = 'lab-check';
+    chk.onclick = () => toggleLab(arrId + '-' + i, chk, li);
+    const txt = document.createElement('span');
+    txt.className = 'lab-text';
+    txt.textContent = lab;
+    li.appendChild(chk);
+    li.appendChild(txt);
+    el.appendChild(li);
+  });
+}
+
+function toggleLab(id, chk, li) {
+  const done = !chk.classList.contains('checked');
+  chk.classList.toggle('checked');
+  chk.textContent = done ? '✓' : '';
+  li.classList.toggle('done');
+  updateLabProgress();
+}
+
+function updateLabProgress() {
+  const total = document.querySelectorAll('.lab-check').length;
+  const done = document.querySelectorAll('.lab-check.checked').length;
+  document.getElementById('labDone').textContent = done;
+  document.getElementById('labTotalCount').textContent = total;
+  document.getElementById('labPercent').textContent = Math.round(done / total * 100) + '%';
+}
+
+buildLabList('labList4', labs4);
+buildLabList('labList5', labs5);
+buildLabList('labListProject', labsProject);
+updateLabProgress();
+</script>
+</body>
+</html>

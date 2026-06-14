@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCNA Drill Trainer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Courier New',monospace;background:#060a10;color:#c9d1d9;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── top bar ── */
+.topbar{background:#0d1117;border-bottom:1px solid #1c2a3a;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo{font-size:12px;font-weight:700;color:#58a6ff;letter-spacing:2px}
+.logo span{color:#3fb950}
+.stat-row{display:flex;gap:18px;align-items:center}
+.stat{text-align:center}
+.stat-n{font-size:18px;font-weight:700;line-height:1}
+.stat-l{font-size:9px;color:#484f58;letter-spacing:1px;margin-top:2px}
+.streak{color:#f0883e}.correct-c{color:#3fb950}.wrong-c{color:#f85149}
+
+/* ── layout ── */
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:220px;background:#0d1117;border-right:1px solid #1c2a3a;overflow-y:auto;flex-shrink:0;padding:12px 0}
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── sidebar drills ── */
+.sb-label{font-size:9px;color:#484f58;letter-spacing:2px;padding:6px 14px 4px;text-transform:uppercase}
+.drill-item{padding:8px 14px;font-size:11px;cursor:pointer;color:#8b949e;border-left:2px solid transparent;transition:all .15s;line-height:1.4}
+.drill-item:hover{color:#c9d1d9;background:#161b22}
+.drill-item.active{color:#58a6ff;border-left-color:#58a6ff;background:#0d1f35}
+.drill-item.done{color:#3fb950;border-left-color:#3fb950}
+.drill-item .di-num{font-size:9px;color:#484f58;display:block;margin-bottom:2px}
+.drill-item.done .di-num{color:#3fb950}
+
+/* ── drill header ── */
+.drill-head{background:#0d1117;border-bottom:1px solid #1c2a3a;padding:14px 20px;flex-shrink:0}
+.drill-title{font-size:15px;font-weight:700;color:#e6edf3;margin-bottom:4px}
+.drill-meta{font-size:11px;color:#484f58;letter-spacing:1px}
+.mode-badge{display:inline-block;font-size:10px;padding:2px 10px;border-radius:20px;margin-left:8px;vertical-align:middle}
+.mb-user{background:#1c2a3a;color:#79c0ff;border:1px solid #1c3a5f}
+.mb-priv{background:#0d2a1a;color:#3fb950;border:1px solid #1a4a2a}
+.mb-config{background:#2a1a3a;color:#bc8cff;border:1px solid #3a2a5f}
+.mb-if{background:#2a1f0d;color:#e3b341;border:1px solid #4a3a1a}
+
+/* ── step instructor ── */
+.instructor{padding:16px 20px;background:#0d1117;border-bottom:1px solid #1c2a3a;flex-shrink:0}
+.inst-step{font-size:10px;color:#58a6ff;letter-spacing:2px;margin-bottom:6px;text-transform:uppercase}
+.inst-what{font-size:14px;color:#e6edf3;margin-bottom:6px;line-height:1.5}
+.inst-why{font-size:12px;color:#484f58;line-height:1.6}
+.inst-why b{color:#8b949e;font-weight:normal}
+.type-hint{margin-top:8px;font-size:12px;color:#484f58}
+.type-hint code{color:#d29922;background:#1c1f24;padding:1px 6px;border-radius:3px;font-family:'Courier New',monospace}
+
+/* ── cli area ── */
+.cli-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cli-out{flex:1;overflow-y:auto;padding:14px 20px;font-size:13px;line-height:1.8;background:#010409}
+.cli-out .p{color:#3fb950}
+.cli-out .c{color:#e6edf3}
+.cli-out .i{color:#79c0ff}
+.cli-out .w{color:#d29922}
+.cli-out .ok{color:#3fb950}
+.cli-out .er{color:#f85149}
+.cli-out .dim{color:#484f58}
+
+/* feedback flash */
+.feedback-bar{padding:10px 20px;font-size:12px;display:none;align-items:center;gap:10px;flex-shrink:0}
+.feedback-bar.show{display:flex}
+.feedback-bar.good{background:#0d2a1a;border-top:1px solid #3fb950;color:#7ee787}
+.feedback-bar.bad{background:#2a0d0d;border-top:1px solid #f85149;color:#ffa198}
+.feedback-bar.info{background:#0d1f35;border-top:1px solid #1c3a5f;color:#79c0ff}
+.fb-icon{font-size:16px;flex-shrink:0}
+.fb-text{flex:1;line-height:1.5}
+.fb-next{background:transparent;border:1px solid currentColor;color:inherit;padding:4px 12px;border-radius:3px;font-size:11px;font-family:'Courier New',monospace;cursor:pointer;letter-spacing:1px;flex-shrink:0}
+.fb-next:hover{opacity:.7}
+
+/* ── input bar ── */
+.input-bar{background:#010409;border-top:1px solid #1c2a3a;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.cli-prompt{color:#3fb950;font-size:13px;white-space:nowrap;min-width:130px}
+.cli-inp{flex:1;background:transparent;border:none;outline:none;color:#e6edf3;font-family:'Courier New',monospace;font-size:13px;caret-color:#58a6ff}
+.cli-inp::placeholder{color:#2d333b}
+.inp-hint{font-size:10px;color:#2d333b;white-space:nowrap}
+
+/* ── progress strip ── */
+.progress-strip{display:flex;gap:2px;padding:8px 20px;background:#0d1117;border-bottom:1px solid #1c2a3a;flex-shrink:0}
+.ps-step{height:4px;flex:1;border-radius:2px;background:#1c2a3a;transition:background .3s}
+.ps-step.done{background:#3fb950}
+.ps-step.current{background:#58a6ff}
+.ps-step.wrong-s{background:#f85149}
+
+/* ── complete screen ── */
+.complete-screen{display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:30px}
+.complete-screen.show{display:flex}
+.complete-icon{font-size:48px}
+.complete-title{font-size:22px;font-weight:700;color:#e6edf3}
+.complete-sub{font-size:13px;color:#8b949e;line-height:1.7;max-width:420px}
+.complete-stats{display:flex;gap:20px;justify-content:center;margin:10px 0}
+.cs-box{background:#0d1117;border:1px solid #1c2a3a;border-radius:4px;padding:12px 20px;text-align:center}
+.cs-n{font-size:28px;font-weight:700}
+.cs-l{font-size:10px;color:#484f58;letter-spacing:1px;margin-top:2px}
+.btn-restart{background:#1c3a5f;border:1px solid #58a6ff;color:#58a6ff;padding:9px 22px;border-radius:4px;font-family:'Courier New',monospace;font-size:12px;cursor:pointer;letter-spacing:1px}
+.btn-restart:hover{background:#2d4a6e}
+
+/* ── repeat indicator ── */
+.rep-dots{display:flex;gap:4px;margin-top:6px}
+.rep-dot{width:7px;height:7px;border-radius:50%;background:#1c2a3a}
+.rep-dot.filled{background:#58a6ff}
+.rep-dot.done-d{background:#3fb950}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#010409}::-webkit-scrollbar-thumb{background:#1c2a3a;border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">CCNA <span>DRILL</span> TRAINER</div>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-n streak" id="streakN">0</div><div class="stat-l">STREAK</div></div>
+    <div class="stat"><div class="stat-n correct-c" id="correctN">0</div><div class="stat-l">CORRECT</div></div>
+    <div class="stat"><div class="stat-n wrong-c" id="wrongN">0</div><div class="stat-l">MISSED</div></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-label">Chapter 4 — CLI</div>
+    <div id="sb-drills"></div>
+    <div class="sb-label" style="margin-top:8px">Chapter 5 — Switching</div>
+    <div id="sb-drills5"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-area">
+
+    <!-- DRILL HEADER -->
+    <div class="drill-head">
+      <div class="drill-title" id="drillTitle">Loading...</div>
+      <div class="drill-meta" id="drillMeta"></div>
+    </div>
+
+    <!-- PROGRESS STRIP -->
+    <div class="progress-strip" id="progressStrip"></div>
+
+    <!-- INSTRUCTOR -->
+    <div class="instructor">
+      <div class="inst-step" id="stepLabel">STEP 1</div>
+      <div class="inst-what" id="stepWhat"></div>
+      <div class="inst-why" id="stepWhy"></div>
+      <div class="type-hint" id="typeHint"></div>
+      <div class="rep-dots" id="repDots"></div>
+    </div>
+
+    <!-- CLI OUTPUT + COMPLETE SCREEN share space -->
+    <div class="cli-wrap" id="cliWrap">
+      <div class="cli-out" id="cliOut"></div>
+
+      <!-- FEEDBACK -->
+      <div class="feedback-bar" id="feedbackBar">
+        <span class="fb-icon" id="fbIcon"></span>
+        <span class="fb-text" id="fbText"></span>
+        <button class="fb-next" id="fbNext" onclick="advance()">NEXT ▶</button>
+      </div>
+
+      <!-- INPUT -->
+      <div class="input-bar" id="inputBar">
+        <div class="cli-prompt" id="cliPrompt">Switch></div>
+        <input class="cli-inp" id="cliInp" type="text" autocomplete="off" spellcheck="false" placeholder="type the command and press Enter..." onkeydown="handleKey(event)">
+        <span class="inp-hint" id="inpHint">↑ history · Tab complete</span>
+      </div>
+    </div>
+
+    <!-- COMPLETE SCREEN -->
+    <div class="complete-screen" id="completeScreen">
+      <div class="complete-icon">🎯</div>
+      <div class="complete-title" id="completeTitle">Drill Complete!</div>
+      <div class="complete-sub" id="completeSub"></div>
+      <div class="complete-stats">
+        <div class="cs-box"><div class="cs-n correct-c" id="csCorrect">0</div><div class="cs-l">CORRECT</div></div>
+        <div class="cs-box"><div class="cs-n wrong-c" id="csWrong">0</div><div class="cs-l">MISSED</div></div>
+        <div class="cs-box"><div class="cs-n" style="color:#58a6ff" id="csReps">0</div><div class="cs-l">REPS</div></div>
+      </div>
+      <button class="btn-restart" id="btnRestart">↺ REPEAT THIS DRILL</button>
+      <button class="btn-restart" style="background:#0d2a1a;border-color:#3fb950;color:#3fb950;margin-top:-6px" onclick="nextDrill()">→ NEXT DRILL</button>
+    </div>
+
+  </div><!-- /content-area -->
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DRILL DATA
+// Each drill has: title, goal, mode, steps[]
+// Each step has: what, why, cmd (exact answer), accept (aliases),
+//                reps (how many times to type it), prompt
+// ═══════════════════════════════════════════════════════════════
+
+const DRILLS = [
+  // ── CH4 DRILL 1 ──────────────────────────────────────────────
+  {
+    id:'d1', ch:4, title:'Lab 1 — Enter & Exit Modes',
+    goal:'Build muscle memory for navigating between all 4 CLI modes.',
+    steps:[
+      {
+        what:'Type: enable',
+        why:'You are at Switch> (User EXEC). This is read-only mode — you cannot make changes here. "enable" is the password door to admin mode.',
+        cmd:'enable',
+        accept:['enable','en'],
+        prompt:'Switch>',
+        reps:3,
+        ok:'✓ You are now at Switch# — Privileged EXEC. You have full read access and can copy/debug/save configs.'
+      },
+      {
+        what:'Type: configure terminal',
+        why:'You need to be in Privileged EXEC (Switch#) to run this. "configure terminal" opens the door to making actual changes on the device.',
+        cmd:'configure terminal',
+        accept:['configure terminal','conf t','configure t'],
+        prompt:'Switch#',
+        reps:3,
+        ok:'✓ Now at Switch(config)# — Global Config mode. Every change you make here affects the whole switch.'
+      },
+      {
+        what:'Type: exit',
+        why:'"exit" steps back ONE level. From Global Config it takes you back to Privileged EXEC. Like pressing the Back button.',
+        cmd:'exit',
+        accept:['exit'],
+        prompt:'Switch(config)#',
+        reps:3,
+        ok:'✓ Back to Switch# — Privileged EXEC. exit = one step back.'
+      },
+      {
+        what:'Type: configure terminal  (enter config mode again)',
+        why:'You need to be in config mode to use "end". Get there first.',
+        cmd:'configure terminal',
+        accept:['configure terminal','conf t','configure t'],
+        prompt:'Switch#',
+        reps:2,
+        ok:'✓ Back in Switch(config)# — now practice "end" to jump all the way out.'
+      },
+      {
+        what:'Type: end',
+        why:'"end" is the emergency exit — it jumps you ALL the way back to Switch# from anywhere, no matter how deep you are.',
+        cmd:'end',
+        accept:['end'],
+        prompt:'Switch(config)#',
+        reps:3,
+        ok:'✓ Back at Switch# in one move. "end" = eject button. Use it when you are done configuring.'
+      },
+    ]
+  },
+
+  // ── CH4 DRILL 2 ──────────────────────────────────────────────
+  {
+    id:'d2', ch:4, title:'Lab 2 — Set a Hostname',
+    goal:'Practice setting the device hostname from scratch every single time.',
+    steps:[
+      {
+        what:'Type: enable',
+        why:'Always start here. You cannot configure anything from User EXEC (Switch>). This gets you to Switch#.',
+        cmd:'enable',accept:['enable','en'],prompt:'Switch>',reps:3,
+        ok:'✓ Switch# — Privileged EXEC. Good. Now get into config mode.'
+      },
+      {
+        what:'Type: configure terminal',
+        why:'Hostname is a global setting. You must be in Global Config mode (Switch(config)#) to change it.',
+        cmd:'configure terminal',accept:['configure terminal','conf t'],prompt:'Switch#',reps:3,
+        ok:'✓ Switch(config)# — Global Config. Now set the hostname.'
+      },
+      {
+        what:'Type: hostname SW1',
+        why:'This renames your device. The prompt changes immediately to SW1(config)#. Hostname is stored in running-config (RAM).',
+        cmd:'hostname SW1',accept:['hostname sw1','hostname SW1'],prompt:'Switch(config)#',reps:4,
+        ok:'✓ Hostname set! Notice the prompt changed to SW1(config)#. The device now knows its own name.'
+      },
+      {
+        what:'Type: end',
+        why:'Done configuring. Jump back to Privileged EXEC to run show commands.',
+        cmd:'end',accept:['end'],prompt:'SW1(config)#',reps:2,
+        ok:'✓ SW1# — back to Privileged EXEC. Now verify what you just set.'
+      },
+      {
+        what:'Type: show running-config',
+        why:'This displays your active config from RAM. You should see "hostname SW1" near the top. Always verify your changes.',
+        cmd:'show running-config',accept:['show running-config','show run','sh run'],prompt:'SW1#',reps:3,
+        ok:'✓ You can read your running-config. Look for "hostname SW1" — that confirms your change worked.'
+      },
+    ]
+  },
+
+  // ── CH4 DRILL 3 ──────────────────────────────────────────────
+  {
+    id:'d3', ch:4, title:'Lab 3 — Save Configuration',
+    goal:'Burn the save command into your hands. One missed save = lost work.',
+    steps:[
+      {
+        what:'Type: enable',
+        why:'Start fresh from User EXEC as if you just plugged in.',
+        cmd:'enable',accept:['enable','en'],prompt:'Switch>',reps:2,
+        ok:'✓ Switch# ready.'
+      },
+      {
+        what:'Type: configure terminal',
+        why:'Need to get into config mode to make a change worth saving.',
+        cmd:'configure terminal',accept:['configure terminal','conf t'],prompt:'Switch#',reps:2,
+        ok:'✓ Switch(config)# — in config mode.'
+      },
+      {
+        what:'Type: hostname Columbus-SW1',
+        why:'Make a real change so there is something to save. This represents work you would lose on a reboot if you do not save.',
+        cmd:'hostname Columbus-SW1',accept:['hostname columbus-sw1','hostname Columbus-SW1'],prompt:'Switch(config)#',reps:2,
+        ok:'✓ Hostname changed to Columbus-SW1. RAM has this. NVRAM does not — yet.'
+      },
+      {
+        what:'Type: end',
+        why:'Return to Privileged EXEC. The copy command only runs from Switch#.',
+        cmd:'end',accept:['end'],prompt:'Columbus-SW1(config)#',reps:2,
+        ok:'✓ Columbus-SW1# — Privileged EXEC. Ready to save.'
+      },
+      {
+        what:'Type: copy running-config startup-config',
+        why:'This copies RAM → NVRAM. Running-config (active) → Startup-config (saved). Now your work survives a reboot. THIS IS THE MOST IMPORTANT COMMAND ON THE EXAM.',
+        cmd:'copy running-config startup-config',accept:['copy running-config startup-config','copy run start'],prompt:'Columbus-SW1#',reps:5,
+        ok:'✓ [OK] — Configuration saved. Even if this switch loses power right now, your hostname will be there when it boots back up.'
+      },
+      {
+        what:'Type: show startup-config',
+        why:'Verify the save worked. You should see "hostname Columbus-SW1" inside the startup-config stored in NVRAM.',
+        cmd:'show startup-config',accept:['show startup-config','show start'],prompt:'Columbus-SW1#',reps:3,
+        ok:'✓ Startup-config shows your saved settings. This is what loads on next reboot.'
+      },
+    ]
+  },
+
+  // ── CH4 DRILL 4 ──────────────────────────────────────────────
+  {
+    id:'d4', ch:4, title:'Lab 7 — Port Descriptions',
+    goal:'Configure and label 3 interfaces. This is exactly what field techs do when racking switches.',
+    steps:[
+      {
+        what:'Type: enable',
+        why:'Start from scratch.',
+        cmd:'enable',accept:['enable','en'],prompt:'Switch>',reps:2,
+        ok:'✓ Switch#'
+      },
+      {
+        what:'Type: configure terminal',
+        why:'Interface commands only work in Global Config mode.',
+        cmd:'configure terminal',accept:['configure terminal','conf t'],prompt:'Switch#',reps:2,
+        ok:'✓ Switch(config)#'
+      },
+      {
+        what:'Type: interface g0/1',
+        why:'This enters the config for a specific port. g0/1 = GigabitEthernet 0/1 (the first Gigabit port). Your cursor is now on that port only.',
+        cmd:'interface g0/1',accept:['interface g0/1','int g0/1','interface gigabitethernet0/1'],prompt:'Switch(config)#',reps:3,
+        ok:'✓ Switch(config-if)# — you are now inside port g0/1. Any command here only affects this one port.'
+      },
+      {
+        what:'Type: description PC-Port',
+        why:'This adds a text label to the port. It does NOT change how the port works — it is pure documentation so that you and future techs know what is plugged in.',
+        cmd:'description PC-Port',accept:['description pc-port','description PC-Port'],prompt:'Switch(config-if)#',reps:4,
+        ok:'✓ Port g0/1 is now labeled "PC-Port". On a real job this label shows up in show commands and network diagrams.'
+      },
+      {
+        what:'Type: exit  (leave g0/1, stay in config mode)',
+        why:'You need to go into a different interface now. "exit" from interface config takes you back to Switch(config)# — ready to enter another interface.',
+        cmd:'exit',accept:['exit'],prompt:'Switch(config-if)#',reps:3,
+        ok:'✓ Back at Switch(config)# — still in config mode. Now configure the next port.'
+      },
+      {
+        what:'Type: interface g0/2',
+        why:'Moving to the second port — the printer port.',
+        cmd:'interface g0/2',accept:['interface g0/2','int g0/2'],prompt:'Switch(config)#',reps:3,
+        ok:'✓ Now inside g0/2.'
+      },
+      {
+        what:'Type: description Printer-Port',
+        why:'Label this port so anyone looking at the switch config knows a printer is connected here.',
+        cmd:'description Printer-Port',accept:['description printer-port','description Printer-Port'],prompt:'Switch(config-if)#',reps:4,
+        ok:'✓ g0/2 = Printer-Port.'
+      },
+      {
+        what:'Type: exit',
+        why:'Step back to config mode to enter the third interface.',
+        cmd:'exit',accept:['exit'],prompt:'Switch(config-if)#',reps:2,
+        ok:'✓ Back at Switch(config)#.'
+      },
+      {
+        what:'Type: interface g0/3',
+        why:'Third port — the server.',
+        cmd:'interface g0/3',accept:['interface g0/3','int g0/3'],prompt:'Switch(config)#',reps:3,
+        ok:'✓ Inside g0/3.'
+      },
+      {
+        what:'Type: description Server-Port',
+        why:'Label the server port. Real-world standard practice in every network you will ever build.',
+        cmd:'description Server-Port',accept:['description server-port','description Server-Port'],prompt:'Switch(config-if)#',reps:4,
+        ok:'✓ Three ports labeled. Now save everything.'
+      },
+      {
+        what:'Type: end',
+        why:'Jump all the way back to Privileged EXEC to run the save command.',
+        cmd:'end',accept:['end'],prompt:'Switch(config-if)#',reps:2,
+        ok:'✓ Switch# — ready to save.'
+      },
+      {
+        what:'Type: copy running-config startup-config',
+        why:'Save all three port descriptions. Never leave a switch without saving.',
+        cmd:'copy running-config startup-config',accept:['copy running-config startup-config','copy run start'],prompt:'Switch#',reps:4,
+        ok:'✓ [OK] — Saved. On a real job, you now take a screenshot of show running-config for the work order documentation.'
+      },
+    ]
+  },
+
+  // ── CH4 DRILL 5 ──────────────────────────────────────────────
+  {
+    id:'d5', ch:4, title:'Lab 10 — Full Workflow',
+    goal:'Do the complete workflow from a cold switch — every command in order, no looking.',
+    steps:[
+      {what:'Type: enable',why:'Step 1 of every Cisco lab. Always.',cmd:'enable',accept:['enable','en'],prompt:'Switch>',reps:3,ok:'✓ Privileged EXEC.'},
+      {what:'Type: configure terminal',why:'Step 2. Open config mode.',cmd:'configure terminal',accept:['configure terminal','conf t'],prompt:'Switch#',reps:3,ok:'✓ Global Config.'},
+      {what:'Type: hostname SW1',why:'Step 3. Name the device.',cmd:'hostname SW1',accept:['hostname sw1','hostname SW1'],prompt:'Switch(config)#',reps:4,ok:'✓ Hostname = SW1.'},
+      {what:'Type: interface g0/1',why:'Step 4. Enter the first port.',cmd:'interface g0/1',accept:['interface g0/1','int g0/1'],prompt:'SW1(config)#',reps:3,ok:'✓ Inside g0/1.'},
+      {what:'Type: description User-PC',why:'Step 5. Label the port.',cmd:'description User-PC',accept:['description user-pc','description User-PC'],prompt:'SW1(config-if)#',reps:4,ok:'✓ Labeled User-PC.'},
+      {what:'Type: end',why:'Step 6. Jump back to Priv EXEC.',cmd:'end',accept:['end'],prompt:'SW1(config-if)#',reps:2,ok:'✓ SW1# — ready to verify.'},
+      {what:'Type: show running-config',why:'Step 7. Verify your work before saving. Read the output — check hostname and interface description.',cmd:'show running-config',accept:['show running-config','show run','sh run'],prompt:'SW1#',reps:3,ok:'✓ You can see hostname SW1 and description User-PC in the output.'},
+      {what:'Type: copy running-config startup-config',why:'Step 8. ALWAYS save before you leave a device. This is the last thing every tech does.',cmd:'copy running-config startup-config',accept:['copy running-config startup-config','copy run start'],prompt:'SW1#',reps:5,ok:'✓ [OK] — Saved to NVRAM. This is the complete workflow. Every field job ends here.'},
+    ]
+  },
+
+  // ── CH5 DRILL 6 ──────────────────────────────────────────────
+  {
+    id:'d6', ch:5, title:'Lab A — MAC Address Table Commands',
+    goal:'Practice every show command related to MAC tables until they are automatic.',
+    steps:[
+      {what:'Type: enable',why:'All show commands run from Privileged EXEC (Switch#).',cmd:'enable',accept:['enable','en'],prompt:'Switch>',reps:2,ok:'✓ Switch#'},
+      {
+        what:'Type: show mac address-table',
+        why:'Displays the entire MAC address table. Shows which MAC addresses the switch has learned, what port they came from, and which VLAN they are in. This is your go-to troubleshooting command when a PC cannot communicate.',
+        cmd:'show mac address-table',accept:['show mac address-table','show mac-address-table'],prompt:'Switch#',reps:5,
+        ok:'✓ You see MAC addresses, ports, type (Dynamic), and VLAN. Dynamic = learned automatically.'
+      },
+      {
+        what:'Type: show mac address-table dynamic',
+        why:'Shows ONLY dynamically learned entries — the ones the switch figured out on its own. Filters out any static (manually added) entries.',
+        cmd:'show mac address-table dynamic',accept:['show mac address-table dynamic'],prompt:'Switch#',reps:4,
+        ok:'✓ Only dynamic entries. On a real network this is cleaner to read when you are hunting a specific device.'
+      },
+      {
+        what:'Type: show mac address-table aging-time',
+        why:'Shows how long before inactive MAC entries are deleted. Default is 300 seconds (5 minutes). If a PC goes silent for 5 minutes its entry is removed.',
+        cmd:'show mac address-table aging-time',accept:['show mac address-table aging-time'],prompt:'Switch#',reps:4,
+        ok:'✓ Default = 300 seconds. This is a common CCNA exam question. Remember: 300 seconds = 5 minutes.'
+      },
+      {
+        what:'Type: clear mac address-table dynamic',
+        why:'Wipes all learned MAC entries. The switch starts fresh and relearns everything. Use this when troubleshooting a device that moved ports.',
+        cmd:'clear mac address-table dynamic',accept:['clear mac address-table dynamic'],prompt:'Switch#',reps:4,
+        ok:'✓ Table cleared. The switch will rebuild its MAC table as devices send traffic. Useful on the job when a device moves to a new port but cannot connect.'
+      },
+      {
+        what:'Type: show mac address-table  (again — verify table is rebuilding)',
+        why:'After clearing, run this again to confirm entries are being re-learned. On a live network you will see new entries appear within seconds.',
+        cmd:'show mac address-table',accept:['show mac address-table','show mac-address-table'],prompt:'Switch#',reps:3,
+        ok:'✓ Table is rebuilding. LEARN → FORWARD → FLOOD is happening right now in the background.'
+      },
+    ]
+  },
+
+  // ── CH5 DRILL 7 ──────────────────────────────────────────────
+  {
+    id:'d7', ch:5, title:'Lab B — Frame Forwarding Recall',
+    goal:'Type the answer to each scenario from memory. Builds exam AND real-world pattern recognition.',
+    steps:[
+      {
+        what:'Scenario: Destination MAC is IN the table. What does the switch do?\n→ Type: forward',
+        why:'Known Unicast = FORWARD. The switch knows exactly which port to use. It sends the frame to ONE port only — efficient and fast.',
+        cmd:'forward',accept:['forward'],prompt:'SW1#',reps:4,
+        ok:'✓ FORWARD — one port only. This is the goal: a switch that knows all its devices operates at full efficiency.'
+      },
+      {
+        what:'Scenario: Destination MAC is NOT in the table. What does the switch do?\n→ Type: flood',
+        why:'Unknown Unicast = FLOOD. The switch does not know where that device is, so it sends copies of the frame to every port except the incoming one. It is looking for the device.',
+        cmd:'flood',accept:['flood'],prompt:'SW1#',reps:4,
+        ok:'✓ FLOOD — all ports except incoming. The receiving device will reply, and then the switch learns where it is.'
+      },
+      {
+        what:'Scenario: Destination MAC is FFFF.FFFF.FFFF. What does the switch do?\n→ Type: flood',
+        why:'Broadcast = always FLOOD. Every device on the VLAN must receive it. ARP requests and DHCP Discover use broadcast — they need everyone to hear them.',
+        cmd:'flood',accept:['flood'],prompt:'SW1#',reps:4,
+        ok:'✓ FLOOD — broadcast is always flooded. This is why large networks use VLANs — to stop broadcasts from reaching every device on the network.'
+      },
+      {
+        what:'The switch reads the _______ MAC to decide where to SEND.\n→ Type: destination',
+        why:'The switch checks the DESTINATION MAC in its table to decide where to forward the frame. The source MAC is only used for learning — updating the table.',
+        cmd:'destination',accept:['destination'],prompt:'SW1#',reps:4,
+        ok:'✓ DESTINATION MAC = forwarding decision. Source MAC = learning. Never mix these up on the exam.'
+      },
+      {
+        what:'The switch reads the _______ MAC to LEARN where a device is.\n→ Type: source',
+        why:'Every frame that arrives tells the switch "this MAC address lives on this port." The switch records that in the MAC table. This is passive — automatic learning.',
+        cmd:'source',accept:['source'],prompt:'SW1#',reps:4,
+        ok:'✓ SOURCE MAC = learning. Mnemonic: LEARN from Source, FORWARD to Destination.'
+      },
+      {
+        what:'MAC entries age out after _____ seconds by default.\n→ Type: 300',
+        why:'300 seconds = 5 minutes. If a device is silent that long, its MAC entry is deleted. The next frame from that device will trigger a new entry.',
+        cmd:'300',accept:['300'],prompt:'SW1#',reps:5,
+        ok:'✓ 300 seconds. Say it out loud: "Three hundred seconds, five minutes, MAC aging time." This appears on almost every CCNA practice exam.'
+      },
+    ]
+  },
+
+  // ── CH5 DRILL 8 ──────────────────────────────────────────────
+  {
+    id:'d8', ch:5, title:'Lab C — Branch Switch Project',
+    goal:'Full real-world scenario. DME sends you a switch for the Columbus branch. Do the whole job.',
+    steps:[
+      {what:'Type: enable',why:'Power on the switch. First thing you do every single time.',cmd:'enable',accept:['enable','en'],prompt:'Switch>',reps:2,ok:'✓ Privileged EXEC.'},
+      {what:'Type: configure terminal',why:'Open config mode to start setup.',cmd:'configure terminal',accept:['configure terminal','conf t'],prompt:'Switch#',reps:2,ok:'✓ Global Config.'},
+      {what:'Type: hostname Columbus-SW1',why:'The work order says name it Columbus-SW1. Always name switches by location so you know which device you are looking at remotely.',cmd:'hostname Columbus-SW1',accept:['hostname columbus-sw1','hostname Columbus-SW1'],prompt:'Switch(config)#',reps:4,ok:'✓ Columbus-SW1. Prompt changed. Now configure the ports.'},
+      {what:'Type: interface g0/1',why:'First port — Reception desk is plugged into g0/1.',cmd:'interface g0/1',accept:['interface g0/1','int g0/1'],prompt:'Columbus-SW1(config)#',reps:3,ok:'✓ Inside g0/1.'},
+      {what:'Type: description Reception',why:'Label it. Six months from now another tech will thank you.',cmd:'description Reception',accept:['description reception','description Reception'],prompt:'Columbus-SW1(config-if)#',reps:4,ok:'✓ g0/1 = Reception.'},
+      {what:'Type: exit',why:'Step back to configure the next port.',cmd:'exit',accept:['exit'],prompt:'Columbus-SW1(config-if)#',reps:2,ok:'✓ Back to global config.'},
+      {what:'Type: interface g0/2',why:'Second port — the printer.',cmd:'interface g0/2',accept:['interface g0/2','int g0/2'],prompt:'Columbus-SW1(config)#',reps:3,ok:'✓ Inside g0/2.'},
+      {what:'Type: description Printer',why:'Label the printer port.',cmd:'description Printer',accept:['description printer','description Printer'],prompt:'Columbus-SW1(config-if)#',reps:4,ok:'✓ g0/2 = Printer.'},
+      {what:'Type: exit',why:'Move to next port.',cmd:'exit',accept:['exit'],prompt:'Columbus-SW1(config-if)#',reps:2,ok:'✓ Back to global config.'},
+      {what:'Type: interface g0/3',why:'Third port — Conference Room.',cmd:'interface g0/3',accept:['interface g0/3','int g0/3'],prompt:'Columbus-SW1(config)#',reps:3,ok:'✓ Inside g0/3.'},
+      {what:'Type: description Conference-Room',why:'Conference rooms get their own label. Clear documentation = faster troubleshooting.',cmd:'description Conference-Room',accept:['description conference-room','description Conference-Room'],prompt:'Columbus-SW1(config-if)#',reps:4,ok:'✓ g0/3 = Conference-Room.'},
+      {what:'Type: exit',why:'Move to last port.',cmd:'exit',accept:['exit'],prompt:'Columbus-SW1(config-if)#',reps:2,ok:'✓ Back to global config.'},
+      {what:'Type: interface g0/4',why:'Fourth port — the server. Most important device on the network.',cmd:'interface g0/4',accept:['interface g0/4','int g0/4'],prompt:'Columbus-SW1(config)#',reps:3,ok:'✓ Inside g0/4.'},
+      {what:'Type: description Server',why:'Label the server port clearly.',cmd:'description Server',accept:['description server','description Server'],prompt:'Columbus-SW1(config-if)#',reps:4,ok:'✓ g0/4 = Server. All 4 ports done.'},
+      {what:'Type: end',why:'Jump back to Privileged EXEC — time to verify and save.',cmd:'end',accept:['end'],prompt:'Columbus-SW1(config-if)#',reps:2,ok:'✓ Columbus-SW1# — done configuring.'},
+      {what:'Type: show running-config',why:'Verify EVERYTHING before saving. Read the output. Check: hostname, all 4 interface descriptions. If anything is wrong, fix it now.',cmd:'show running-config',accept:['show running-config','show run','sh run'],prompt:'Columbus-SW1#',reps:3,ok:'✓ Confirm you see: hostname Columbus-SW1, g0/1–Reception, g0/2–Printer, g0/3–Conference-Room, g0/4–Server.'},
+      {what:'Type: copy running-config startup-config',why:'SAVE. This is the last command of every job. Never leave a site without saving.',cmd:'copy running-config startup-config',accept:['copy running-config startup-config','copy run start'],prompt:'Columbus-SW1#',reps:5,ok:'✓ [OK] — JOB COMPLETE. This is a billable Field Nation ticket. You just did real network tech work.'},
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let currentDrillIdx = 0;
+let currentStepIdx  = 0;
+let currentRep      = 0;   // reps done for this step
+let totalCorrect    = 0;
+let totalWrong      = 0;
+let streak          = 0;
+let drillCorrect    = 0;
+let drillWrong      = 0;
+let drillReps       = 0;
+let waitingAdvance  = false;
+let completedDrills = new Set();
+let inputHistory    = [];
+let histIdx         = -1;
+
+// CLI display state (simulated prompt changes)
+let simHostname     = 'Switch';
+let simMode         = 'user';
+
+// ═══════════════════════════════════════════════════════════════
+// SIDEBAR BUILD
+// ═══════════════════════════════════════════════════════════════
+function buildSidebar(){
+  const sb4 = document.getElementById('sb-drills');
+  const sb5 = document.getElementById('sb-drills5');
+  DRILLS.forEach((d,i)=>{
+    const el = document.createElement('div');
+    el.className='drill-item'+(i===0?' active':'');
+    el.id='sb-'+i;
+    el.innerHTML=`<span class="di-num">DRILL ${i+1}</span>${d.title}`;
+    el.onclick=()=>loadDrill(i);
+    (d.ch===4?sb4:sb5).appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOAD DRILL
+// ═══════════════════════════════════════════════════════════════
+function loadDrill(idx){
+  currentDrillIdx = idx;
+  currentStepIdx  = 0;
+  currentRep      = 0;
+  drillCorrect    = 0;
+  drillWrong      = 0;
+  drillReps       = 0;
+  waitingAdvance  = false;
+  simHostname     = 'Switch';
+  simMode         = 'user';
+
+  // sidebar highlight
+  document.querySelectorAll('.drill-item').forEach((el,i)=>{
+    el.classList.toggle('active', i===idx);
+  });
+
+  const d = DRILLS[idx];
+  document.getElementById('drillTitle').textContent = d.title;
+  document.getElementById('drillMeta').innerHTML =
+    `Chapter ${d.ch} &nbsp;·&nbsp; ${d.steps.length} steps &nbsp;·&nbsp; Goal: ${d.goal}`;
+
+  // show main UI
+  document.getElementById('cliWrap').style.display='flex';
+  document.getElementById('completeScreen').classList.remove('show');
+
+  // clear output
+  document.getElementById('cliOut').innerHTML='<span class="dim">── drill started ──</span>\n';
+
+  hideFeedback();
+  buildProgressStrip();
+  loadStep();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROGRESS STRIP
+// ═══════════════════════════════════════════════════════════════
+function buildProgressStrip(){
+  const d = DRILLS[currentDrillIdx];
+  const strip = document.getElementById('progressStrip');
+  strip.innerHTML='';
+  d.steps.forEach((_,i)=>{
+    const el = document.createElement('div');
+    el.className='ps-step'+(i===0?' current':'');
+    el.id='ps-'+i;
+    strip.appendChild(el);
+  });
+}
+
+function updateStrip(idx, state){
+  const el = document.getElementById('ps-'+idx);
+  if(el) el.className='ps-step '+(state==='done'?'done':state==='wrong'?'wrong-s':'current');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOAD STEP
+// ═══════════════════════════════════════════════════════════════
+function loadStep(){
+  const d    = DRILLS[currentDrillIdx];
+  const step = d.steps[currentStepIdx];
+  currentRep = 0;
+  waitingAdvance = false;
+
+  // step label
+  document.getElementById('stepLabel').textContent =
+    `STEP ${currentStepIdx+1} OF ${d.steps.length}`;
+
+  // instructor text
+  document.getElementById('stepWhat').innerHTML =
+    step.what.replace(/\n/g,'<br>');
+  document.getElementById('stepWhy').innerHTML =
+    '<b>Why:</b> ' + step.why;
+
+  // type hint
+  document.getElementById('typeHint').innerHTML =
+    `Type it <code>${step.reps}x</code> — builds muscle memory`;
+
+  // rep dots
+  buildRepDots(step.reps);
+
+  // update prompt
+  updateSimPrompt(step.prompt);
+  updateStrip(currentStepIdx,'current');
+
+  // focus input
+  const inp = document.getElementById('cliInp');
+  inp.value='';
+  inp.focus();
+  hideFeedback();
+}
+
+function buildRepDots(total){
+  const el = document.getElementById('repDots');
+  el.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='rep-dot';
+    d.id='rd-'+i;
+    el.appendChild(d);
+  }
+}
+
+function fillRepDot(i,done){
+  const d=document.getElementById('rd-'+i);
+  if(d) d.className='rep-dot '+(done?'done-d':'filled');
+}
+
+function updateSimPrompt(promptStr){
+  // Detect prompt state from string
+  simHostname = promptStr.replace(/[>#].*$/,'').replace(/\(.*\)/,'');
+  if(promptStr.includes('(config-if)')) simMode='if';
+  else if(promptStr.includes('(config)')) simMode='config';
+  else if(promptStr.endsWith('#'))  simMode='priv';
+  else simMode='user';
+
+  document.getElementById('cliPrompt').textContent = promptStr + ' ';
+
+  const badges = {
+    user:  ['User EXEC','mb-user'],
+    priv:  ['Privileged EXEC','mb-priv'],
+    config:['Global Config','mb-config'],
+    if:    ['Interface Config','mb-if'],
+  };
+  const [label,cls] = badges[simMode];
+  document.getElementById('drillMeta').innerHTML =
+    `Chapter ${DRILLS[currentDrillIdx].ch} &nbsp;·&nbsp; Goal: ${DRILLS[currentDrillIdx].goal}`+
+    `<span class="mode-badge ${cls}">${label}</span>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INPUT HANDLER
+// ═══════════════════════════════════════════════════════════════
+function handleKey(e){
+  if(e.key==='Enter'){
+    const inp=document.getElementById('cliInp');
+    const val=inp.value.trim();
+    if(!val) return;
+
+    if(waitingAdvance){ advance(); return; }
+
+    inputHistory.unshift(val);
+    histIdx=-1;
+    inp.value='';
+    evaluate(val);
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    if(histIdx<inputHistory.length-1){ histIdx++; document.getElementById('cliInp').value=inputHistory[histIdx]; }
+  } else if(e.key==='ArrowDown'){
+    e.preventDefault();
+    if(histIdx>0){ histIdx--; document.getElementById('cliInp').value=inputHistory[histIdx]; }
+    else{ histIdx=-1; document.getElementById('cliInp').value=''; }
+  } else if(e.key==='Tab'){
+    e.preventDefault();
+    tabComplete();
+  }
+}
+
+function tabComplete(){
+  const step=DRILLS[currentDrillIdx].steps[currentStepIdx];
+  const inp=document.getElementById('cliInp');
+  const val=inp.value.toLowerCase();
+  const all=[step.cmd,...(step.accept||[])];
+  const match=all.find(c=>c.toLowerCase().startsWith(val));
+  if(match) inp.value=match;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EVALUATE
+// ═══════════════════════════════════════════════════════════════
+function evaluate(input){
+  const d    = DRILLS[currentDrillIdx];
+  const step = d.steps[currentStepIdx];
+  const accepted = [step.cmd,...(step.accept||[])].map(s=>s.toLowerCase().trim());
+  const isCorrect = accepted.includes(input.toLowerCase().trim());
+
+  // print to cli output
+  const out = document.getElementById('cliOut');
+  const promptStr = document.getElementById('cliPrompt').textContent;
+  out.innerHTML += `\n<span class="p">${promptStr}</span><span class="c">${input}</span>\n`;
+
+  if(isCorrect){
+    // simulate command output
+    const simOut = getSimOutput(step.cmd, input);
+    if(simOut) out.innerHTML += `<span class="i">${simOut}</span>\n`;
+
+    currentRep++;
+    drillReps++;
+    totalCorrect++;
+    drillCorrect++;
+    streak++;
+    fillRepDot(currentRep-1, true);
+    updateCounters();
+
+    if(currentRep < step.reps){
+      // need more reps — show quick green flash then continue
+      out.innerHTML += `<span class="ok">✓ Rep ${currentRep}/${step.reps} — type it again</span>\n`;
+      fillRepDot(currentRep-1,'done');
+      out.scrollTop=out.scrollHeight;
+    } else {
+      // step complete
+      out.innerHTML += `<span class="ok">✓ Perfect — ${step.reps}/${step.reps} reps done!</span>\n`;
+      out.scrollTop=out.scrollHeight;
+      fillRepDot(currentRep-1,'done');
+      updateStrip(currentStepIdx,'done');
+      showFeedback('good','✓', step.ok);
+      waitingAdvance=true;
+    }
+  } else {
+    totalWrong++;
+    drillWrong++;
+    streak=0;
+    updateCounters();
+    out.innerHTML += `<span class="er">✗ Not quite. The command is: ${step.cmd}</span>\n`;
+    out.innerHTML += `<span class="w">  Try again. Type it exactly as shown above.</span>\n`;
+    out.scrollTop=out.scrollHeight;
+    updateStrip(currentStepIdx,'wrong');
+    showFeedback('bad','✗',`The correct command is: <code style="color:#d29922">${step.cmd}</code><br>Read it once, then type it below.`);
+    // don't block — user can keep typing
+    setTimeout(()=>{ hideFeedback(); updateStrip(currentStepIdx,'current'); document.getElementById('cliInp').focus(); },2200);
+  }
+  out.scrollTop=out.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIMULATED OUTPUT for specific commands
+// ═══════════════════════════════════════════════════════════════
+function getSimOutput(cmd, typed){
+  const c=cmd.toLowerCase();
+  if(c==='enable') return ''; // prompt change handled by next step
+  if(c==='configure terminal') return 'Enter configuration commands, one per line.  End with CNTL/Z.';
+  if(c==='end' || c==='exit') return '';
+  if(c.startsWith('hostname')) return '';
+  if(c.startsWith('interface')) return '';
+  if(c.startsWith('description')) return '';
+  if(c==='copy running-config startup-config') return 'Destination filename [startup-config]? \nBuilding configuration...\n[OK]';
+  if(c==='show running-config'||c==='show run') return 'Building configuration...\n!\nversion 15.0\n!\nhostname SW1\n!\ninterface GigabitEthernet0/1\n description PC-Port\n!\nend';
+  if(c==='show startup-config'||c==='show start') return '! Startup Config\n!\nhostname SW1\n!\ninterface GigabitEthernet0/1\n description PC-Port\n!\nend';
+  if(c==='show mac address-table') return '          Mac Address Table\n-------------------------------------------\nVlan    Mac Address       Type        Ports\n----    -----------       --------    -----\n   1    001a.2b3c.4d5e    DYNAMIC     Fa0/1\n   1    001a.2b3c.4d6f    DYNAMIC     Fa0/2\n   1    001a.2b3c.4d7a    DYNAMIC     Fa0/3\nTotal Mac Addresses: 3';
+  if(c==='show mac address-table dynamic') return 'Vlan    Mac Address       Type        Ports\n   1    001a.2b3c.4d5e    DYNAMIC     Fa0/1\n   1    001a.2b3c.4d6f    DYNAMIC     Fa0/2\n   1    001a.2b3c.4d7a    DYNAMIC     Fa0/3';
+  if(c==='show mac address-table aging-time') return 'Global Aging Time:  300\nVlan    Aging Time\n   1      300';
+  if(c==='clear mac address-table dynamic') return 'MAC address table cleared.';
+  if(c==='show version') return 'Cisco IOS Version 15.0(2)SE\nSwitch uptime is 1 hour, 4 minutes';
+  if(c==='300') return '→ Default MAC aging time is 300 seconds (5 minutes)';
+  if(c==='forward') return '→ Known Unicast: forward out ONE specific port only';
+  if(c==='flood') return '→ Flood: send out ALL ports except the incoming port';
+  if(c==='destination') return '→ Destination MAC is used to FORWARD frames';
+  if(c==='source') return '→ Source MAC is used to LEARN — build the MAC table';
+  return '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ADVANCE TO NEXT STEP / DRILL COMPLETE
+// ═══════════════════════════════════════════════════════════════
+function advance(){
+  hideFeedback();
+  waitingAdvance=false;
+  const d=DRILLS[currentDrillIdx];
+
+  if(currentStepIdx < d.steps.length-1){
+    currentStepIdx++;
+    // update prompt to next step's prompt
+    const next=d.steps[currentStepIdx];
+    updateStrip(currentStepIdx,'current');
+    updateSimPrompt(next.prompt);
+    loadStep();
+    document.getElementById('cliInp').focus();
+  } else {
+    // drill complete
+    showComplete();
+  }
+}
+
+function nextDrill(){
+  if(currentDrillIdx < DRILLS.length-1){
+    loadDrill(currentDrillIdx+1);
+  } else {
+    loadDrill(0); // wrap
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPLETE SCREEN
+// ═══════════════════════════════════════════════════════════════
+function showComplete(){
+  completedDrills.add(currentDrillIdx);
+  // mark sidebar
+  const sbEl=document.getElementById('sb-'+currentDrillIdx);
+  if(sbEl){ sbEl.classList.remove('active'); sbEl.classList.add('done'); }
+
+  const d=DRILLS[currentDrillIdx];
+  document.getElementById('cliWrap').style.display='none';
+  const cs=document.getElementById('completeScreen');
+  cs.classList.add('show');
+
+  const pct=Math.round(drillCorrect/(drillCorrect+drillWrong)*100)||0;
+  document.getElementById('completeTitle').textContent=pct===100?'Perfect Run! 🔥':'Drill Complete';
+  document.getElementById('completeSub').textContent=
+    pct===100
+      ? `You typed every command correctly, ${drillReps} reps total. This is how muscle memory is built — one command at a time.`
+      : `${pct}% accuracy. Every rep matters. Hit REPEAT to drill the missed commands again until you hit 100%.`;
+
+  document.getElementById('csCorrect').textContent=drillCorrect;
+  document.getElementById('csWrong').textContent=drillWrong;
+  document.getElementById('csReps').textContent=drillReps;
+
+  document.getElementById('btnRestart').onclick=()=>loadDrill(currentDrillIdx);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FEEDBACK BAR
+// ═══════════════════════════════════════════════════════════════
+function showFeedback(type, icon, text){
+  const bar=document.getElementById('feedbackBar');
+  bar.className='feedback-bar show '+type;
+  document.getElementById('fbIcon').textContent=icon;
+  document.getElementById('fbText').innerHTML=text;
+  const nextBtn=document.getElementById('fbNext');
+  nextBtn.style.display=type==='bad'?'none':'inline-block';
+}
+function hideFeedback(){
+  document.getElementById('feedbackBar').className='feedback-bar';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COUNTERS
+// ═══════════════════════════════════════════════════════════════
+function updateCounters(){
+  document.getElementById('streakN').textContent=streak;
+  document.getElementById('correctN').textContent=totalCorrect;
+  document.getElementById('wrongN').textContent=totalWrong;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+buildSidebar();
+loadDrill(0);
+document.getElementById('cliInp').focus();
+</script>
+</body>
+</html>
